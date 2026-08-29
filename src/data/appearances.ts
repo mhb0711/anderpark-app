@@ -1,4 +1,3 @@
-import beaverImg from '../assets/pets/beaver.png';
 import octopusImg from '../assets/pets/octopus.png';
 import owlImg from '../assets/pets/owl.png';
 import lionCubImg from '../assets/pets/lion-cub.png';
@@ -44,13 +43,6 @@ export const APPEARANCES: AppearanceOption[] = [
     image: octopusImg,
     tagline: 'Juggles a dozen things without dropping one.',
     colorFilter: 'sepia(1) saturate(4) hue-rotate(165deg) brightness(0.95)',
-  },
-  {
-    id: 'beaver',
-    name: 'Beaver',
-    image: beaverImg,
-    tagline: 'Always building something.',
-    colorFilter: 'sepia(1) saturate(3) hue-rotate(-10deg) brightness(0.95)',
   },
   {
     id: 'owl',
