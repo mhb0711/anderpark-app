@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { playSound } from '../lib/sound';
+import { restartApp } from '../lib/resetApp';
 import { useRequireTaskNote } from '../hooks/useRequireTaskNote';
 import { useSoundSettings } from '../hooks/useSoundSettings';
+import { RestartConfirmModal } from './RestartConfirmModal';
 
 interface Props {
   colorMode: boolean;
@@ -12,6 +14,7 @@ interface Props {
 
 export function SettingsMenu({ colorMode, onToggleColorMode, onOpenFriends, onOpenActivityLog }: Props) {
   const [open, setOpen] = useState(false);
+  const [confirmingRestart, setConfirmingRestart] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const { volume, muted, setVolume, setMuted } = useSoundSettings();
   const { requireNote, setRequireTaskNote } = useRequireTaskNote();
@@ -120,12 +123,26 @@ export function SettingsMenu({ colorMode, onToggleColorMode, onOpenFriends, onOp
               setOpen(false);
               onOpenFriends();
             }}
-            className="flex w-full items-center justify-between rounded-xl border border-emerald-100 px-3 py-2 text-sm font-semibold text-emerald-900 hover:bg-emerald-50"
+            className="mb-2 flex w-full items-center justify-between rounded-xl border border-emerald-100 px-3 py-2 text-sm font-semibold text-emerald-900 hover:bg-emerald-50"
           >
             <span>Friends</span>
             <span className="text-emerald-600">Add / link →</span>
           </button>
+
+          <button
+            onClick={() => {
+              playSound('click');
+              setConfirmingRestart(true);
+            }}
+            className="w-full text-center text-xs text-rose-400 hover:text-rose-600"
+          >
+            Restart AnderPark
+          </button>
         </div>
+      )}
+
+      {confirmingRestart && (
+        <RestartConfirmModal onCancel={() => setConfirmingRestart(false)} onConfirm={restartApp} />
       )}
     </div>
   );
