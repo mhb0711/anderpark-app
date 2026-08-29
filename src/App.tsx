@@ -4,12 +4,14 @@ import { CharacterDetailModal } from './components/CharacterDetailModal';
 import { DailyLogModal } from './components/DailyLogModal';
 import { DecorationActionModal } from './components/DecorationActionModal';
 import { FriendsModal } from './components/FriendsModal';
+import { GamesModal } from './components/GamesModal';
 import { MemorialModal } from './components/MemorialModal';
 import { NeedHud } from './components/NeedHud';
 import { OnboardingModal } from './components/OnboardingModal';
 import { RoomModal } from './components/RoomModal';
 import { ShareModal } from './components/ShareModal';
 import { ShopModal } from './components/ShopModal';
+import { SpaceDefenderGame } from './components/SpaceDefenderGame';
 import { StreakBadge } from './components/StreakBadge';
 import { getTheme } from './data/themes';
 import { displayStreak } from './data/streak';
@@ -71,6 +73,8 @@ function App() {
   const [shopOpen, setShopOpen] = useState(false);
   const [friendsOpen, setFriendsOpen] = useState(false);
   const [dailyLogOpen, setDailyLogOpen] = useState(false);
+  const [gamesOpen, setGamesOpen] = useState(false);
+  const [playingSpaceDefender, setPlayingSpaceDefender] = useState(false);
   const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null);
   const [roomInstanceId, setRoomInstanceId] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
@@ -123,6 +127,10 @@ function App() {
     const reward = completeTask(needType, taskId, note);
     if (reward > 0) earnCoins(reward);
     return reward;
+  };
+
+  const handleWinSpaceDefender = (coinsEarned: number) => {
+    if (coinsEarned > 0) earnCoins(coinsEarned);
   };
 
   const handleBuy = (lineId: string) => {
@@ -219,7 +227,9 @@ function App() {
         </button>
       </div>
 
-      {character && <NeedHud character={character} onSelect={() => setDetailOpen(true)} />}
+      {character && (
+        <NeedHud character={character} onSelect={() => setDetailOpen(true)} onOpenGames={() => setGamesOpen(true)} />
+      )}
 
       {!character && <OnboardingModal onCreate={handleCreate} />}
 
@@ -292,6 +302,25 @@ function App() {
       )}
 
       {friendsOpen && <FriendsModal friends={friends} onClose={() => setFriendsOpen(false)} />}
+
+      {gamesOpen && (
+        <GamesModal
+          onPlaySpaceDefender={() => {
+            setGamesOpen(false);
+            setPlayingSpaceDefender(true);
+          }}
+          onClose={() => setGamesOpen(false)}
+        />
+      )}
+
+      {playingSpaceDefender && character && (
+        <SpaceDefenderGame
+          appearanceId={character.appearanceId}
+          colorMode={colorMode}
+          onExit={() => setPlayingSpaceDefender(false)}
+          onWin={handleWinSpaceDefender}
+        />
+      )}
 
       {character && leveledUp && <ShareModal character={character} onClose={dismissLevelUp} />}
 
