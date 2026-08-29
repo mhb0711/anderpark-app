@@ -120,8 +120,6 @@ export function AnderPark({
         bottom: 2 + Math.random() * 68,
         size: 3 + Math.round(Math.random() * 2),
         variant: Math.floor(Math.random() * GRASS_MATRICES.length),
-        swayDuration: 1.6 + Math.random() * 1.4,
-        swayDelay: -Math.random() * 3,
       })),
     [],
   );
@@ -196,7 +194,10 @@ export function AnderPark({
                   className="animate-tree-sway absolute opacity-90"
                   style={{
                     left: `${tree.left}%`,
-                    bottom: `calc(${tree.bottom}% + ${pixelSpriteHeight(treeMatrix, tree.size)}px)`,
+                    // Width/height now match the sprite's full bounds (for the
+                    // sway pivot below), so `bottom` alone already lands the
+                    // sprite's base at the right line — no extra height offset.
+                    bottom: `${tree.bottom}%`,
                     width: pixelSpriteWidth(treeMatrix, tree.size),
                     height: pixelSpriteHeight(treeMatrix, tree.size),
                     animationDuration: `${tree.swayDuration}s`,
@@ -234,14 +235,10 @@ export function AnderPark({
             return (
               <div
                 key={i}
-                className="animate-grass-sway absolute opacity-70"
+                className="absolute opacity-70"
                 style={{
                   left: `${tuft.left}%`,
                   bottom: `calc(${tuft.bottom}% + ${pixelSpriteHeight(grassMatrix, tuft.size)}px)`,
-                  width: pixelSpriteWidth(grassMatrix, tuft.size),
-                  height: pixelSpriteHeight(grassMatrix, tuft.size),
-                  animationDuration: `${tuft.swayDuration}s`,
-                  animationDelay: `${tuft.swayDelay}s`,
                 }}
               >
                 <PixelGrass

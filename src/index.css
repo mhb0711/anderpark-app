@@ -144,18 +144,6 @@ body {
   animation-iteration-count: infinite;
 }
 
-@keyframes grass-sway {
-  0%, 100% { transform: rotate(-8deg); }
-  50% { transform: rotate(8deg); }
-}
-
-.animate-grass-sway {
-  transform-origin: bottom center;
-  animation-name: grass-sway;
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-}
-
 @keyframes cloud-drift {
   0%, 100% { transform: translateX(0); }
   50% { transform: translateX(26px); }
