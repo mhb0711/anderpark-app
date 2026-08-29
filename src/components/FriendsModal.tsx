@@ -8,7 +8,7 @@ interface Props {
 }
 
 export function FriendsModal({ friends, onClose }: Props) {
-  const { enabled, ready, username, friends: list, incoming, outgoing, claimUsername, sendFriendRequest, respondToRequest } = friends;
+  const { demoMode, ready, username, friends: list, incoming, outgoing, claimUsername, sendFriendRequest, respondToRequest } = friends;
   const [usernameDraft, setUsernameDraft] = useState('');
   const [usernameError, setUsernameError] = useState<string | null>(null);
   const [friendInput, setFriendInput] = useState('');
@@ -25,16 +25,16 @@ export function FriendsModal({ friends, onClose }: Props) {
           </button>
         </div>
 
-        {!enabled && (
-          <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-800">
-            Friends aren't connected yet — this needs a Supabase project. See <code>.env.example</code> and{' '}
-            <code>supabase/schema.sql</code> in the repo to set one up.
+        {!ready && <p className="text-sm text-emerald-600">Connecting...</p>}
+
+        {ready && demoMode && (
+          <p className="mb-4 rounded-xl bg-slate-50 p-3 text-xs text-slate-500">
+            Preview community — sample friends so you can see how this looks. Connect Supabase (
+            <code>.env.example</code>, <code>supabase/schema.sql</code>) to make it real.
           </p>
         )}
 
-        {enabled && !ready && <p className="text-sm text-emerald-600">Connecting...</p>}
-
-        {enabled && ready && !username && (
+        {ready && !username && (
           <div>
             <p className="mb-3 text-sm text-emerald-700">Pick a username so friends can find you.</p>
             <div className="flex gap-2">
@@ -62,7 +62,7 @@ export function FriendsModal({ friends, onClose }: Props) {
           </div>
         )}
 
-        {enabled && ready && username && (
+        {ready && username && (
           <>
             <p className="mb-4 font-mono text-xs text-emerald-500">You're @{username}</p>
 

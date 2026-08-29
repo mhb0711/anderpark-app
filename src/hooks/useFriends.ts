@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { DEMO_FRIENDS, mintDemoFriend } from '../data/demoCommunity';
 import { ensureAnonymousSession, supabase, supabaseConfigured } from '../lib/supabase';
+
+// Until a real Supabase project is connected, Friends runs on sample data —
+// see DEMO_FRIENDS — so the UI reads as a populated community instead of an
+// empty "not connected" state. Every mutating action below still works, it
+// just edits local state instead of a shared backend.
+const demoMode = !supabaseConfigured;
 
 export interface FriendProfile {
   id: string;
@@ -39,10 +46,10 @@ type ActionResult = { ok: true } | { ok: false; error: string };
 // no-op (or returns a clear "not connected" error) until .env.local has real
 // project credentials — see .env.example / supabase/schema.sql.
 export function useFriends() {
-  const [ready, setReady] = useState(false);
+  const [ready, setReady] = useState(demoMode);
   const [userId, setUserId] = useState<string | null>(null);
   const [username, setUsername] = useState<string | null>(null);
-  const [friends, setFriends] = useState<FriendProfile[]>([]);
+  const [friends, setFriends] = useState<FriendProfile[]>(demoMode ? DEMO_FRIENDS : []);
   const [incoming, setIncoming] = useState<FriendRequest[]>([]);
   const [outgoing, setOutgoing] = useState<FriendRequest[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -145,6 +152,10 @@ export function useFriends() {
 
   const claimUsername = useCallback(
     async (name: string): Promise<ActionResult> => {
+      if (demoMode) {
+        setUsername(name);
+        return { ok: true };
+      }
       if (!supabase || !userId) return { ok: false, error: 'Not connected' };
       const stats = statsRef.current;
       const { error: upsertError } = await supabase.from('profiles').upsert({
@@ -198,6 +209,12 @@ export function useFriends() {
 
   const sendFriendRequest = useCallback(
     async (targetUsername: string): Promise<ActionResult> => {
+      if (demoMode) {
+        if (targetUsername === username) return { ok: false, error: "That's you!" };
+        if (friends.some((f) => f.username === targetUsername)) return { ok: false, error: 'Already friends' };
+        setFriends((prev) => [...prev, mintDemoFriend(targetUsername)].sort((a, b) => b.level - a.level || b.streakCount - a.streakCount));
+        return { ok: true };
+      }
       if (!supabase || !userId) return { ok: false, error: 'Not connected' };
       const { data: target } = await supabase
         .from('profiles')
@@ -215,7 +232,7 @@ export function useFriends() {
       await refetch();
       return { ok: true };
     },
-    [userId, refetch],
+    [userId, refetch, username, friends],
   );
 
   const respondToRequest = useCallback(
@@ -233,6 +250,7 @@ export function useFriends() {
 
   return {
     enabled: supabaseConfigured,
+    demoMode,
     ready,
     username,
     friends,

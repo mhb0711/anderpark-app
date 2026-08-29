@@ -12,7 +12,7 @@ interface Props {
 }
 
 export function TaskBoardModal({ character, taskBoard, onAddCustomTask, onClose }: Props) {
-  const { enabled, ready, tasks, shareTask, useTask, removeTask } = taskBoard;
+  const { demoMode, ready, tasks, shareTask, useTask, removeTask } = taskBoard;
   const [sharingId, setSharingId] = useState<string | null>(null);
   const [shareError, setShareError] = useState<string | null>(null);
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
@@ -53,16 +53,16 @@ export function TaskBoardModal({ character, taskBoard, onAddCustomTask, onClose 
           Publish a task you use so others can copy it, or grab one someone else already shared.
         </p>
 
-        {!enabled && (
-          <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-800">
-            The Task Board isn't connected yet — this needs a Supabase project. See <code>.env.example</code> and{' '}
-            <code>supabase/schema.sql</code> in the repo to set one up.
+        {!ready && <p className="text-sm text-emerald-600">Connecting...</p>}
+
+        {ready && demoMode && (
+          <p className="mb-4 rounded-xl bg-slate-50 p-3 text-xs text-slate-500">
+            Preview community — sample tasks so you can see how this looks. Connect Supabase (
+            <code>.env.example</code>, <code>supabase/schema.sql</code>) to make it real.
           </p>
         )}
 
-        {enabled && !ready && <p className="text-sm text-emerald-600">Connecting...</p>}
-
-        {enabled && ready && (
+        {ready && (
           <>
             <div className="mb-5">
               <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-emerald-500">Share one of yours</h3>
