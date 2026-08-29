@@ -15,8 +15,15 @@ create table if not exists public.profiles (
   level integer not null default 1,
   streak_count integer not null default 0,
   longest_streak integer not null default 0,
+  hyena_high_score integer not null default 0,
+  hyena_level_reached integer not null default 1,
   updated_at timestamptz not null default now()
 );
+
+-- Safe to re-run against a database where profiles already existed before
+-- the Hyena Defense scoreboard was added.
+alter table public.profiles add column if not exists hyena_high_score integer not null default 0;
+alter table public.profiles add column if not exists hyena_level_reached integer not null default 1;
 
 alter table public.profiles enable row level security;
 

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { getAppearance } from '../data/appearances';
-import { INVADER_MATRICES } from '../data/invaderArt';
+import { HYENA_MATRICES } from '../data/hyenaArt';
+import type { GameProgressEntry, RunResult } from '../hooks/useGameProgress';
 import { PixelSprite } from './PixelDecor';
 
 interface Bullet {
@@ -15,7 +16,6 @@ interface EnemyCell {
   alive: boolean;
 }
 
-const ROWS = 3;
 const COLS = 6;
 const COL_SPACING = 11;
 const ROW_SPACING = 9;
@@ -34,14 +34,35 @@ const ENEMY_HALF_WIDTH = 4.5;
 const ENEMY_HALF_HEIGHT = 4.5;
 const ENEMY_LOSE_Y = 78;
 const STARTING_LIVES = 3;
+const LEVEL_BANNER_MS = 1300;
 
-type Status = 'ready' | 'playing' | 'won' | 'lost';
+// Each level adds more hyenas and speeds up the pack; rows cap at 5 so the
+// grid never gets taller than the arena has room for.
+function levelConfig(level: number) {
+  const rows = Math.min(5, 2 + Math.ceil(level / 2));
+  const baseSpeed = 10 + level * 2.5;
+  const shotIntervalMin = Math.max(350, 900 - level * 60);
+  const shotIntervalSpread = 700;
+  return { rows, cols: COLS, baseSpeed, shotIntervalMin, shotIntervalSpread };
+}
+
+function buildGrid(rows: number, cols: number): EnemyCell[] {
+  const cells: EnemyCell[] = [];
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) cells.push({ row, col, alive: true });
+  }
+  return cells;
+}
+
+type Status = 'ready' | 'playing' | 'levelup' | 'lost';
 
 interface GameState {
+  level: number;
   playerX: number;
   bullets: Bullet[];
   enemyBullets: Bullet[];
   enemies: EnemyCell[];
+  levelTotalEnemies: number;
   enemyOffsetX: number;
   enemyOffsetY: number;
   enemyDir: 1 | -1;
@@ -51,38 +72,43 @@ interface GameState {
   status: Status;
   lastShotAt: number;
   nextEnemyShotAt: number;
+  levelBannerUntil: number;
+  runResult: RunResult | null;
 }
 
 function makeInitialState(): GameState {
-  const enemies: EnemyCell[] = [];
-  for (let row = 0; row < ROWS; row++) {
-    for (let col = 0; col < COLS; col++) enemies.push({ row, col, alive: true });
-  }
+  const config = levelConfig(1);
+  const enemies = buildGrid(config.rows, config.cols);
   return {
+    level: 1,
     playerX: 50,
     bullets: [],
     enemyBullets: [],
     enemies,
+    levelTotalEnemies: enemies.length,
     enemyOffsetX: 0,
     enemyOffsetY: 0,
     enemyDir: 1,
-    enemySpeed: 12,
+    enemySpeed: config.baseSpeed,
     lives: STARTING_LIVES,
     score: 0,
     status: 'ready',
     lastShotAt: 0,
     nextEnemyShotAt: 1200,
+    levelBannerUntil: 0,
+    runResult: null,
   };
 }
 
 interface Props {
   appearanceId: string;
   colorMode: boolean;
+  progress: GameProgressEntry;
   onExit: () => void;
-  onWin: (coinsEarned: number) => void;
+  onGameOver: (finalScore: number, finalLevel: number, fullReward: number) => RunResult;
 }
 
-export function SpaceDefenderGame({ appearanceId, colorMode, onExit, onWin }: Props) {
+export function HyenaDefenseGame({ appearanceId, colorMode, progress, onExit, onGameOver }: Props) {
   const appearance = getAppearance(appearanceId);
   const stateRef = useRef<GameState>(makeInitialState());
   const [, bump] = useReducer((n: number) => n + 1, 0);
@@ -91,13 +117,28 @@ export function SpaceDefenderGame({ appearanceId, colorMode, onExit, onWin }: Pr
   const shootHeldRef = useRef(false);
   const nextBulletId = useRef(0);
   const elapsedMsRef = useRef(0);
-  const wonHandledRef = useRef(false);
+  const gameOverHandledRef = useRef(false);
 
   const start = useCallback(() => {
     stateRef.current = { ...makeInitialState(), status: 'playing' };
     elapsedMsRef.current = 0;
-    wonHandledRef.current = false;
+    gameOverHandledRef.current = false;
     bump();
+  }, []);
+
+  const advanceLevel = useCallback((s: GameState) => {
+    const nextLevel = s.level + 1;
+    const config = levelConfig(nextLevel);
+    const enemies = buildGrid(config.rows, config.cols);
+    s.level = nextLevel;
+    s.enemies = enemies;
+    s.levelTotalEnemies = enemies.length;
+    s.enemyOffsetX = 0;
+    s.enemyOffsetY = 0;
+    s.enemyDir = 1;
+    s.enemySpeed = config.baseSpeed;
+    s.nextEnemyShotAt = elapsedMsRef.current + 1000;
+    s.status = 'playing';
   }, []);
 
   useEffect(() => {
@@ -130,6 +171,14 @@ export function SpaceDefenderGame({ appearanceId, colorMode, onExit, onWin }: Pr
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
       const s = stateRef.current;
+
+      if (s.status === 'levelup') {
+        if (elapsedMsRef.current > s.levelBannerUntil) advanceLevel(s);
+        elapsedMsRef.current += dt * 1000;
+        bump();
+        raf = requestAnimationFrame(tick);
+        return;
+      }
 
       if (s.status === 'playing') {
         elapsedMsRef.current += dt * 1000;
@@ -169,6 +218,7 @@ export function SpaceDefenderGame({ appearanceId, colorMode, onExit, onWin }: Pr
           s.enemyOffsetX = nextOffsetX;
         }
 
+        const config = levelConfig(s.level);
         if (elapsedMsRef.current > s.nextEnemyShotAt && alive.length > 0) {
           const shooter = alive[Math.floor(Math.random() * alive.length)];
           s.enemyBullets.push({
@@ -176,7 +226,7 @@ export function SpaceDefenderGame({ appearanceId, colorMode, onExit, onWin }: Pr
             x: GRID_START_X + s.enemyOffsetX + shooter.col * COL_SPACING,
             y: GRID_START_Y + s.enemyOffsetY + shooter.row * ROW_SPACING,
           });
-          s.nextEnemyShotAt = elapsedMsRef.current + 800 + Math.random() * 900;
+          s.nextEnemyShotAt = elapsedMsRef.current + config.shotIntervalMin + Math.random() * config.shotIntervalSpread;
         }
 
         for (const enemy of s.enemies) {
@@ -205,16 +255,21 @@ export function SpaceDefenderGame({ appearanceId, colorMode, onExit, onWin }: Pr
         s.enemyBullets = s.enemyBullets.filter((b) => b.y < 105);
 
         const stillAlive = s.enemies.filter((e) => e.alive);
-        s.enemySpeed = 12 + (ROWS * COLS - stillAlive.length) * 0.7;
+        s.enemySpeed = config.baseSpeed + (s.levelTotalEnemies - stillAlive.length) * 0.7;
 
         if (s.lives <= 0) s.status = 'lost';
-        if (GRID_START_Y + s.enemyOffsetY + (ROWS - 1) * ROW_SPACING > ENEMY_LOSE_Y) s.status = 'lost';
-        if (stillAlive.length === 0) {
-          s.status = 'won';
-          if (!wonHandledRef.current) {
-            wonHandledRef.current = true;
-            onWin(Math.round(s.score / 10));
-          }
+        if (GRID_START_Y + s.enemyOffsetY + (levelConfig(s.level).rows - 1) * ROW_SPACING > ENEMY_LOSE_Y) {
+          s.status = 'lost';
+        }
+        if (s.status === 'playing' && stillAlive.length === 0) {
+          s.status = 'levelup';
+          s.levelBannerUntil = elapsedMsRef.current + LEVEL_BANNER_MS;
+        }
+
+        if (s.status === 'lost' && !gameOverHandledRef.current) {
+          gameOverHandledRef.current = true;
+          const fullReward = Math.round(s.score / 10);
+          s.runResult = onGameOver(s.score, s.level, fullReward);
         }
       }
 
@@ -224,11 +279,16 @@ export function SpaceDefenderGame({ appearanceId, colorMode, onExit, onWin }: Pr
 
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [onWin]);
+  }, [advanceLevel, onGameOver]);
 
   const s = stateRef.current;
   const starField = useMemo(
-    () => Array.from({ length: 45 }, () => ({ left: Math.random() * 100, top: Math.random() * 100, size: Math.random() > 0.8 ? 2 : 1 })),
+    () =>
+      Array.from({ length: 45 }, () => ({
+        left: Math.random() * 100,
+        top: Math.random() * 100,
+        size: Math.random() > 0.8 ? 2 : 1,
+      })),
     [],
   );
 
@@ -236,11 +296,13 @@ export function SpaceDefenderGame({ appearanceId, colorMode, onExit, onWin }: Pr
     touchDirRef.current = d;
   };
 
+  const hyenaColor = colorMode ? '#c9a15a' : '#e8e8e8';
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
       <div className="w-full max-w-lg overflow-hidden rounded-3xl bg-black shadow-2xl">
         <div className="flex items-center justify-between border-b border-white/20 px-4 py-2">
-          <p className="font-mono text-xs font-bold text-white">SPACE DEFENDER</p>
+          <p className="font-mono text-xs font-bold text-white">HYENA DEFENSE</p>
           <button onClick={onExit} className="font-mono text-xs text-white/70 hover:text-white">
             Close
           </button>
@@ -255,28 +317,31 @@ export function SpaceDefenderGame({ appearanceId, colorMode, onExit, onWin }: Pr
             />
           ))}
 
-          <div className="absolute left-2 top-2 font-mono text-[11px] text-white">SCORE {s.score}</div>
+          <div className="absolute left-2 top-2 font-mono text-[11px] text-white">
+            SCORE {s.score} · LV {s.level}
+          </div>
           <div className="absolute right-2 top-2 font-mono text-[11px] text-white">
             {'♥'.repeat(Math.max(0, s.lives))}
             {'♡'.repeat(Math.max(0, STARTING_LIVES - s.lives))}
           </div>
 
-          {s.enemies
-            .filter((e) => e.alive)
-            .map((e) => {
-              const x = GRID_START_X + s.enemyOffsetX + e.col * COL_SPACING;
-              const y = GRID_START_Y + s.enemyOffsetY + e.row * ROW_SPACING;
-              const matrix = INVADER_MATRICES[(e.row + e.col) % INVADER_MATRICES.length];
-              return (
-                <div
-                  key={`${e.row}-${e.col}`}
-                  className="absolute -translate-x-1/2 -translate-y-1/2"
-                  style={{ left: `${x}%`, top: `${y}%` }}
-                >
-                  <PixelSprite matrix={matrix} size={4} palette={{ 1: colorMode ? '#8fd694' : '#e8e8e8' }} />
-                </div>
-              );
-            })}
+          {(s.status === 'playing' || s.status === 'levelup') &&
+            s.enemies
+              .filter((e) => e.alive)
+              .map((e) => {
+                const x = GRID_START_X + s.enemyOffsetX + e.col * COL_SPACING;
+                const y = GRID_START_Y + s.enemyOffsetY + e.row * ROW_SPACING;
+                const matrix = HYENA_MATRICES[(e.row + e.col) % HYENA_MATRICES.length];
+                return (
+                  <div
+                    key={`${e.row}-${e.col}`}
+                    className="absolute -translate-x-1/2 -translate-y-1/2"
+                    style={{ left: `${x}%`, top: `${y}%` }}
+                  >
+                    <PixelSprite matrix={matrix} size={4} palette={{ 1: hyenaColor }} />
+                  </div>
+                );
+              })}
 
           {s.bullets.map((b) => (
             <div
@@ -293,7 +358,7 @@ export function SpaceDefenderGame({ appearanceId, colorMode, onExit, onWin }: Pr
             />
           ))}
 
-          {(s.status === 'playing' || s.status === 'lost') && (
+          {(s.status === 'playing' || s.status === 'levelup' || s.status === 'lost') && (
             <img
               src={appearance.image}
               alt=""
@@ -302,31 +367,45 @@ export function SpaceDefenderGame({ appearanceId, colorMode, onExit, onWin }: Pr
             />
           )}
 
-          {s.status !== 'playing' && (
+          {s.status === 'levelup' && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+              <p className="font-mono text-2xl font-bold text-white">LEVEL {s.level + 1}</p>
+            </div>
+          )}
+
+          {(s.status === 'ready' || s.status === 'lost') && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/75 px-6 text-center">
               <p className="font-mono text-sm font-bold text-white">
-                {s.status === 'ready' && 'Defend the park!'}
-                {s.status === 'won' && `WAVE CLEARED — score ${s.score}`}
-                {s.status === 'lost' && `GAME OVER — score ${s.score}`}
+                {s.status === 'ready' && 'Hyenas incoming!'}
+                {s.status === 'lost' && `GAME OVER — score ${s.score} · level ${s.level}`}
               </p>
               {s.status === 'ready' && (
-                <p className="max-w-xs font-mono text-[11px] text-white/60">
-                  Arrow keys / A-D to move, Space to fire. Or use the on-screen controls.
+                <>
+                  <p className="max-w-xs font-mono text-[11px] text-white/60">
+                    Arrow keys / A-D to move, Space to fire. Or use the on-screen controls. Survive as many levels as
+                    you can.
+                  </p>
+                  {progress.bestScore > 0 && (
+                    <p className="font-mono text-[11px] text-emerald-400">
+                      Best: {progress.bestScore} (level {progress.bestLevel})
+                    </p>
+                  )}
+                </>
+              )}
+              {s.status === 'lost' && s.runResult && (
+                <p className="font-mono text-[11px] text-emerald-400">
+                  +{s.runResult.coins} coins earned
+                  {!s.runResult.isFullReward && ' (10% — already played today)'}
+                  {s.runResult.newBestScore && ' · New best!'}
                 </p>
               )}
-              {s.status === 'won' && (
-                <p className="font-mono text-[11px] text-emerald-400">+{Math.round(s.score / 10)} coins earned</p>
-              )}
-              <button
-                onClick={start}
-                className="rounded-full bg-emerald-600 px-5 py-2 text-xs font-semibold text-white"
-              >
+              <button onClick={start} className="rounded-full bg-emerald-600 px-5 py-2 text-xs font-semibold text-white">
                 {s.status === 'ready' ? 'Start' : 'Play Again'}
               </button>
             </div>
           )}
 
-          {s.status === 'playing' && (
+          {(s.status === 'playing' || s.status === 'levelup') && (
             <div className="absolute inset-x-3 bottom-3 flex items-end justify-between">
               <div className="flex gap-2">
                 <button

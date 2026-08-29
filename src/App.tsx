@@ -5,19 +5,21 @@ import { DailyLogModal } from './components/DailyLogModal';
 import { DecorationActionModal } from './components/DecorationActionModal';
 import { FriendsModal } from './components/FriendsModal';
 import { GamesModal } from './components/GamesModal';
+import { HyenaDefenseGame } from './components/HyenaDefenseGame';
 import { MemorialModal } from './components/MemorialModal';
 import { NeedHud } from './components/NeedHud';
 import { OnboardingModal } from './components/OnboardingModal';
 import { RoomModal } from './components/RoomModal';
+import { ScoreboardModal } from './components/ScoreboardModal';
 import { ShareModal } from './components/ShareModal';
 import { ShopModal } from './components/ShopModal';
-import { SpaceDefenderGame } from './components/SpaceDefenderGame';
 import { StreakBadge } from './components/StreakBadge';
 import { getTheme } from './data/themes';
 import { displayStreak } from './data/streak';
 import { useCharacter } from './hooks/useCharacter';
 import { useColorMode } from './hooks/useColorMode';
 import { useFriends } from './hooks/useFriends';
+import { useGameProgress } from './hooks/useGameProgress';
 import { useNeedNotifications } from './hooks/useNeedNotifications';
 import { usePark } from './hooks/usePark';
 import { useEffect, useRef, useState } from 'react';
@@ -68,13 +70,16 @@ function App() {
   const { colorMode, toggleColorMode } = useColorMode();
   useNeedNotifications(character);
   const friends = useFriends();
+  const gameProgress = useGameProgress();
+  const hyenaProgress = gameProgress.getEntry('hyena-defense');
 
   const [detailOpen, setDetailOpen] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
   const [friendsOpen, setFriendsOpen] = useState(false);
   const [dailyLogOpen, setDailyLogOpen] = useState(false);
   const [gamesOpen, setGamesOpen] = useState(false);
-  const [playingSpaceDefender, setPlayingSpaceDefender] = useState(false);
+  const [scoreboardOpen, setScoreboardOpen] = useState(false);
+  const [playingHyenaDefense, setPlayingHyenaDefense] = useState(false);
   const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null);
   const [roomInstanceId, setRoomInstanceId] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
@@ -94,7 +99,8 @@ function App() {
   const activeTheme = getTheme(activeThemeId) ?? getTheme('classic')!;
   const parkWidthPercent = 100 + parkExpansionTier * 50;
 
-  // Keep the leaderboard current whenever the local character changes.
+  // Keep the leaderboard current whenever the local character or Hyena
+  // Defense best score changes.
   useEffect(() => {
     if (!character) return;
     friends.syncStats({
@@ -103,9 +109,18 @@ function App() {
       level: character.level,
       streakCount: displayStreak(character.streak, new Date()).count,
       longestStreak: character.streak.longest,
+      hyenaHighScore: hyenaProgress.bestScore,
+      hyenaLevelReached: hyenaProgress.bestLevel,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [character?.nickname, character?.appearanceId, character?.level, character?.streak]);
+  }, [
+    character?.nickname,
+    character?.appearanceId,
+    character?.level,
+    character?.streak,
+    hyenaProgress.bestScore,
+    hyenaProgress.bestLevel,
+  ]);
 
   useEffect(() => () => window.clearTimeout(celebrateTimeout.current), []);
 
@@ -129,8 +144,10 @@ function App() {
     return reward;
   };
 
-  const handleWinSpaceDefender = (coinsEarned: number) => {
-    if (coinsEarned > 0) earnCoins(coinsEarned);
+  const handleHyenaGameOver = (finalScore: number, finalLevel: number, fullReward: number) => {
+    const result = gameProgress.recordRun('hyena-defense', finalScore, finalLevel, fullReward);
+    if (result.coins > 0) earnCoins(result.coins);
+    return result;
   };
 
   const handleBuy = (lineId: string) => {
@@ -305,20 +322,35 @@ function App() {
 
       {gamesOpen && (
         <GamesModal
-          onPlaySpaceDefender={() => {
+          onPlayHyenaDefense={() => {
             setGamesOpen(false);
-            setPlayingSpaceDefender(true);
+            setPlayingHyenaDefense(true);
+          }}
+          onOpenScoreboard={() => {
+            setGamesOpen(false);
+            setScoreboardOpen(true);
           }}
           onClose={() => setGamesOpen(false)}
         />
       )}
 
-      {playingSpaceDefender && character && (
-        <SpaceDefenderGame
+      {playingHyenaDefense && character && (
+        <HyenaDefenseGame
           appearanceId={character.appearanceId}
           colorMode={colorMode}
-          onExit={() => setPlayingSpaceDefender(false)}
-          onWin={handleWinSpaceDefender}
+          progress={hyenaProgress}
+          onExit={() => setPlayingHyenaDefense(false)}
+          onGameOver={handleHyenaGameOver}
+        />
+      )}
+
+      {scoreboardOpen && character && (
+        <ScoreboardModal
+          friends={friends}
+          myNickname={character.nickname}
+          myAppearanceId={character.appearanceId}
+          myProgress={hyenaProgress}
+          onClose={() => setScoreboardOpen(false)}
         />
       )}
 
