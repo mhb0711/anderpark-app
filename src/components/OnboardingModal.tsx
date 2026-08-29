@@ -96,7 +96,7 @@ export function OnboardingModal({ onCreate }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl">
+      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl">
         {step === 0 && (
           <>
             <h2 className="mb-1 text-2xl font-bold text-emerald-900">Create Your Character</h2>
@@ -104,19 +104,24 @@ export function OnboardingModal({ onCreate }: Props) {
               This is the one character you'll be keeping alive. Pick a look and give them a name.
             </p>
 
-            <div className="mb-5 grid grid-cols-3 gap-3">
+            <div className="mb-5 grid max-h-64 grid-cols-3 gap-2 overflow-y-auto pr-1 sm:grid-cols-5">
               {APPEARANCES.map((appearance) => (
                 <button
                   key={appearance.id}
                   onClick={() => setAppearanceId(appearance.id)}
-                  className={`rounded-2xl border-2 p-3 text-center transition ${
+                  className={`relative rounded-2xl border-2 p-2 text-center transition ${
                     appearanceId === appearance.id
                       ? 'border-emerald-500 bg-emerald-50'
                       : 'border-transparent bg-emerald-50/50 hover:border-emerald-200'
                   }`}
                 >
-                  <img src={appearance.image} alt={appearance.name} className="mx-auto h-16 w-16 object-contain" />
-                  <div className="mt-1 text-sm font-semibold text-emerald-900">{appearance.name}</div>
+                  {appearance.placeholderArt && (
+                    <span className="absolute right-1 top-1 rounded-full bg-amber-100 px-1 text-[8px] font-bold uppercase tracking-wide text-amber-700">
+                      WIP
+                    </span>
+                  )}
+                  <img src={appearance.image} alt={appearance.name} className="mx-auto h-14 w-14 object-contain" />
+                  <div className="mt-1 text-xs font-semibold text-emerald-900">{appearance.name}</div>
                 </button>
               ))}
             </div>
