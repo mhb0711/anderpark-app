@@ -9,6 +9,7 @@ import {
   grayHex,
   PixelCloud,
   pixelSpriteHeight,
+  pixelSpriteWidth,
   PixelGrass,
   PixelSun,
   PixelTree,
@@ -75,7 +76,18 @@ export function AnderPark({
         bottom: 98 + Math.random() * 3,
         seed: Math.random(),
         variant: Math.floor(Math.random() * TREE_MATRICES.length),
+        swayDuration: 3.5 + Math.random() * 3,
+        swayDelay: -Math.random() * 6,
       })),
+    [],
+  );
+
+  const cloudSpots = useMemo(
+    () => [
+      { left: 8, top: 16, size: 6, opacity: 0.8, duration: 22 + Math.random() * 10, delay: -Math.random() * 20 },
+      { left: 70, top: 8, size: 5, opacity: 0.6, duration: 26 + Math.random() * 10, delay: -Math.random() * 20 },
+      { left: 40, top: 22, size: 5, opacity: 0.5, duration: 30 + Math.random() * 10, delay: -Math.random() * 20 },
+    ],
     [],
   );
 
@@ -108,6 +120,8 @@ export function AnderPark({
         bottom: 2 + Math.random() * 68,
         size: 3 + Math.round(Math.random() * 2),
         variant: Math.floor(Math.random() * GRASS_MATRICES.length),
+        swayDuration: 1.6 + Math.random() * 1.4,
+        swayDelay: -Math.random() * 3,
       })),
     [],
   );
@@ -145,21 +159,21 @@ export function AnderPark({
         ) : (
           <>
             <PixelSun size={11} color={colorMode ? '#ffd54f' : undefined} className="absolute right-[10%] top-[10%]" />
-            <PixelCloud
-              size={6}
-              color={colorMode ? '#ffffff' : undefined}
-              className="absolute left-[8%] top-[16%] opacity-80"
-            />
-            <PixelCloud
-              size={5}
-              color={colorMode ? '#ffffff' : undefined}
-              className="absolute right-[30%] top-[8%] opacity-60"
-            />
-            <PixelCloud
-              size={5}
-              color={colorMode ? '#ffffff' : undefined}
-              className="absolute left-[40%] top-[22%] opacity-50"
-            />
+            {cloudSpots.map((cloud, i) => (
+              <div
+                key={i}
+                className="animate-cloud-drift absolute"
+                style={{
+                  left: `${cloud.left}%`,
+                  top: `${cloud.top}%`,
+                  opacity: cloud.opacity,
+                  animationDuration: `${cloud.duration}s`,
+                  animationDelay: `${cloud.delay}s`,
+                }}
+              >
+                <PixelCloud size={cloud.size} color={colorMode ? '#ffffff' : undefined} />
+              </div>
+            ))}
           </>
         )}
 
@@ -174,18 +188,25 @@ export function AnderPark({
           }}
         >
           {theme.decor === 'trees' &&
-            treeSpots.map((tree, i) => (
-              <div
-                key={i}
-                className="absolute opacity-90"
-                style={{
-                  left: `${tree.left}%`,
-                  bottom: `calc(${tree.bottom}% + ${pixelSpriteHeight(TREE_MATRICES[tree.variant], tree.size)}px)`,
-                }}
-              >
-                <PixelTree variant={tree.variant} size={tree.size} palette={treePalette(tree.seed, colorMode)} />
-              </div>
-            ))}
+            treeSpots.map((tree, i) => {
+              const treeMatrix = TREE_MATRICES[tree.variant];
+              return (
+                <div
+                  key={i}
+                  className="animate-tree-sway absolute opacity-90"
+                  style={{
+                    left: `${tree.left}%`,
+                    bottom: `calc(${tree.bottom}% + ${pixelSpriteHeight(treeMatrix, tree.size)}px)`,
+                    width: pixelSpriteWidth(treeMatrix, tree.size),
+                    height: pixelSpriteHeight(treeMatrix, tree.size),
+                    animationDuration: `${tree.swayDuration}s`,
+                    animationDelay: `${tree.swayDelay}s`,
+                  }}
+                >
+                  <PixelTree variant={tree.variant} size={tree.size} palette={treePalette(tree.seed, colorMode)} />
+                </div>
+              );
+            })}
 
           {theme.decor === 'buildings' &&
             buildingSpots.map((b, i) => (
@@ -208,22 +229,29 @@ export function AnderPark({
             />
           )}
 
-          {grassSpots.map((tuft, i) => (
-            <div
-              key={i}
-              className="absolute opacity-70"
-              style={{
-                left: `${tuft.left}%`,
-                bottom: `calc(${tuft.bottom}% + ${pixelSpriteHeight(GRASS_MATRICES[tuft.variant], tuft.size)}px)`,
-              }}
-            >
-              <PixelGrass
-                variant={tuft.variant}
-                size={tuft.size}
-                color={colorMode ? (tuft.variant === 0 ? '#5fa84c' : '#4a8f3c') : undefined}
-              />
-            </div>
-          ))}
+          {grassSpots.map((tuft, i) => {
+            const grassMatrix = GRASS_MATRICES[tuft.variant];
+            return (
+              <div
+                key={i}
+                className="animate-grass-sway absolute opacity-70"
+                style={{
+                  left: `${tuft.left}%`,
+                  bottom: `calc(${tuft.bottom}% + ${pixelSpriteHeight(grassMatrix, tuft.size)}px)`,
+                  width: pixelSpriteWidth(grassMatrix, tuft.size),
+                  height: pixelSpriteHeight(grassMatrix, tuft.size),
+                  animationDuration: `${tuft.swayDuration}s`,
+                  animationDelay: `${tuft.swayDelay}s`,
+                }}
+              >
+                <PixelGrass
+                  variant={tuft.variant}
+                  size={tuft.size}
+                  color={colorMode ? (tuft.variant === 0 ? '#5fa84c' : '#4a8f3c') : undefined}
+                />
+              </div>
+            );
+          })}
 
           {instances.map((instance) => {
             const deco = getTier(instance.lineId, instance.tier);

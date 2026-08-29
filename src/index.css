@@ -131,3 +131,38 @@ body {
   animation: activity-spin 0.9s ease-in-out infinite;
   transform-origin: top center;
 }
+
+@keyframes tree-sway {
+  0%, 100% { transform: rotate(-1.6deg); }
+  50% { transform: rotate(1.6deg); }
+}
+
+.animate-tree-sway {
+  transform-origin: bottom center;
+  animation-name: tree-sway;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+@keyframes grass-sway {
+  0%, 100% { transform: rotate(-8deg); }
+  50% { transform: rotate(8deg); }
+}
+
+.animate-grass-sway {
+  transform-origin: bottom center;
+  animation-name: grass-sway;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+@keyframes cloud-drift {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(26px); }
+}
+
+.animate-cloud-drift {
+  animation-name: cloud-drift;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}

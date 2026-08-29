@@ -32,6 +32,13 @@ export function pixelSpriteHeight(matrix: number[][], size: number): number {
   return matrix.length * size;
 }
 
+// Same idea, for width — needed to size a wrapper so a CSS rotation (wind
+// sway) pivots around the sprite's actual visual base instead of the tiny
+// anchor pixel in its top-left corner.
+export function pixelSpriteWidth(matrix: number[][], size: number): number {
+  return (matrix[0]?.length ?? 0) * size;
+}
+
 // Tiered pine
 const TREE_MATRIX_PINE = [
   [0, 0, 0, 1, 0, 0, 0],
