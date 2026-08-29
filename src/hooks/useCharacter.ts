@@ -301,7 +301,9 @@ export function useCharacter(onCoinsDrained?: (amount: number) => void) {
             completedAt: Date.now(),
           },
           ...prev.taskLog,
-        ].slice(0, 50),
+          // High enough that the Activity Log reads as "everything you've
+          // done" in practice, while still bounding localStorage growth.
+        ].slice(0, 2000),
         lastUpdatedAt: Date.now(),
       };
     });

@@ -1,3 +1,4 @@
+import { ActivityLogModal } from './components/ActivityLogModal';
 import { AnderPark } from './components/AnderPark';
 import { AwayReportModal } from './components/AwayReportModal';
 import { BerryChaseGame } from './components/BerryChaseGame';
@@ -81,6 +82,7 @@ function App() {
   const [shopOpen, setShopOpen] = useState(false);
   const [friendsOpen, setFriendsOpen] = useState(false);
   const [dailyLogOpen, setDailyLogOpen] = useState(false);
+  const [activityLogOpen, setActivityLogOpen] = useState(false);
   const [gamesOpen, setGamesOpen] = useState(false);
   const [scoreboardGame, setScoreboardGame] = useState<'hyena' | 'berry' | null>(null);
   const [playingHyenaDefense, setPlayingHyenaDefense] = useState(false);
@@ -256,6 +258,7 @@ function App() {
             colorMode={colorMode}
             onToggleColorMode={toggleColorMode}
             onOpenFriends={() => setFriendsOpen(true)}
+            onOpenActivityLog={() => setActivityLogOpen(true)}
           />
         </div>
       </header>
@@ -301,6 +304,10 @@ function App() {
 
       {character && dailyLogOpen && (
         <DailyLogModal character={character} onClose={() => setDailyLogOpen(false)} />
+      )}
+
+      {character && activityLogOpen && (
+        <ActivityLogModal character={character} onClose={() => setActivityLogOpen(false)} />
       )}
 
       {shopOpen && (

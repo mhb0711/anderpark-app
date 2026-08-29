@@ -1,17 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
 import { playSound } from '../lib/sound';
+import { useRequireTaskNote } from '../hooks/useRequireTaskNote';
 import { useSoundSettings } from '../hooks/useSoundSettings';
 
 interface Props {
   colorMode: boolean;
   onToggleColorMode: () => void;
   onOpenFriends: () => void;
+  onOpenActivityLog: () => void;
 }
 
-export function SettingsMenu({ colorMode, onToggleColorMode, onOpenFriends }: Props) {
+export function SettingsMenu({ colorMode, onToggleColorMode, onOpenFriends, onOpenActivityLog }: Props) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const { volume, muted, setVolume, setMuted } = useSoundSettings();
+  const { requireNote, setRequireTaskNote } = useRequireTaskNote();
 
   useEffect(() => {
     if (!open) return;
@@ -43,7 +46,7 @@ export function SettingsMenu({ colorMode, onToggleColorMode, onOpenFriends }: Pr
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-20 mt-2 w-64 rounded-2xl border border-emerald-100 bg-white p-4 text-left shadow-2xl">
+        <div className="absolute right-0 top-full z-20 mt-2 w-72 rounded-2xl border border-emerald-100 bg-white p-4 text-left shadow-2xl">
           <p className="mb-3 text-xs font-bold uppercase tracking-wide text-emerald-500">Settings</p>
 
           <div className="mb-4">
@@ -81,6 +84,34 @@ export function SettingsMenu({ colorMode, onToggleColorMode, onOpenFriends }: Pr
           >
             <span>Park colors</span>
             <span className="text-emerald-600">{colorMode ? 'Color' : 'Mono'}</span>
+          </button>
+
+          <button
+            onClick={() => {
+              playSound('click');
+              setRequireTaskNote(!requireNote);
+            }}
+            className="mb-2 flex w-full items-center justify-between rounded-xl border border-emerald-100 px-3 py-2 text-sm font-semibold text-emerald-900 hover:bg-emerald-50"
+          >
+            <span>Task notes</span>
+            <span className="text-emerald-600">{requireNote ? 'Required' : 'Optional'}</span>
+          </button>
+          <p className="mb-2 px-1 text-[11px] text-emerald-500">
+            {requireNote
+              ? "Logging a task asks what you actually did."
+              : 'Logging a task is one tap — no note needed.'}
+          </p>
+
+          <button
+            onClick={() => {
+              playSound('click');
+              setOpen(false);
+              onOpenActivityLog();
+            }}
+            className="mb-2 flex w-full items-center justify-between rounded-xl border border-emerald-100 px-3 py-2 text-sm font-semibold text-emerald-900 hover:bg-emerald-50"
+          >
+            <span>Activity Log</span>
+            <span className="text-emerald-600">View →</span>
           </button>
 
           <button

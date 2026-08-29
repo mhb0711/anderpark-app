@@ -8,6 +8,7 @@ import { NEED_DEFINITIONS, XP_PER_LEVEL } from '../data/needs';
 import { displayStreak } from '../data/streak';
 import { STRUGGLE_GRACE_HOURS, struggleDrainRatePerHour, vitalityStage, type VitalityStage } from '../data/vitality';
 import type { GoalDraft } from '../hooks/useCharacter';
+import { useRequireTaskNote } from '../hooks/useRequireTaskNote';
 import type { Character, GoalTask, NeedType } from '../types';
 import { NeedIcon } from './NeedIcon';
 
@@ -49,22 +50,41 @@ function playCompletionFeedback() {
   }
 }
 
-function TaskRow({ task, onComplete }: { task: GoalTask; onComplete: (note: string) => number }) {
+function TaskRow({
+  task,
+  onComplete,
+  requireNote,
+}: {
+  task: GoalTask;
+  onComplete: (note: string) => number;
+  requireNote: boolean;
+}) {
   const [celebrating, setCelebrating] = useState(false);
   const [awarded, setAwarded] = useState(task.restoreAmount);
   const [logging, setLogging] = useState(false);
   const [note, setNote] = useState('');
 
-  const submit = () => {
-    const trimmed = note.trim();
-    if (!trimmed) return;
+  const logTask = (finalNote: string) => {
     playCompletionFeedback();
-    const reward = onComplete(trimmed);
+    const reward = onComplete(finalNote);
     setAwarded(reward);
     setCelebrating(true);
     setLogging(false);
     setNote('');
     setTimeout(() => setCelebrating(false), 700);
+  };
+
+  const submit = () => {
+    const trimmed = note.trim();
+    if (!trimmed) return;
+    logTask(trimmed);
+  };
+
+  // With notes required, tapping "+" opens the note field; with them
+  // optional, it logs immediately with no note — the simpler one-tap flow.
+  const handleTap = () => {
+    if (requireNote) setLogging(true);
+    else logTask('');
   };
 
   const lucky = celebrating && awarded !== task.restoreAmount;
@@ -114,7 +134,7 @@ function TaskRow({ task, onComplete }: { task: GoalTask; onComplete: (note: stri
       }`}
     >
       <button
-        onClick={() => setLogging(true)}
+        onClick={handleTap}
         aria-label={`Log: ${task.label}`}
         className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 text-base font-bold transition ${
           celebrating
@@ -318,6 +338,7 @@ export function CharacterDetailModal({
   onOpenDailyLog,
 }: Props) {
   const appearance = getAppearance(character.appearanceId);
+  const { requireNote } = useRequireTaskNote();
   const [confirmingReset, setConfirmingReset] = useState(false);
   const [editingCharacter, setEditingCharacter] = useState(false);
   const [expandedInactiveNeed, setExpandedInactiveNeed] = useState<NeedType | null>(null);
@@ -456,7 +477,12 @@ export function CharacterDetailModal({
 
                 <ul className="mb-2 space-y-1.5">
                   {goal.tasks.map((task) => (
-                    <TaskRow key={task.id} task={task} onComplete={(note) => onCompleteTask(def.id, task.id, note)} />
+                    <TaskRow
+                      key={task.id}
+                      task={task}
+                      requireNote={requireNote}
+                      onComplete={(note) => onCompleteTask(def.id, task.id, note)}
+                    />
                   ))}
                 </ul>
 
