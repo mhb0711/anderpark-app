@@ -104,30 +104,36 @@ export function useWander(seedLeft: number, seedBottom: number, decorations: Dec
         waitMs = 900 + Math.random() * 1800;
         setState((s) => ({ ...s, duration: 0, jumping: false }));
       } else if (roll < 0.78) {
-        // slow stroll to a nearby spot
+        // slow stroll to a nearby spot — varies depth (bottom) as much as
+        // horizontal position, so it reads as walking around the grass band
+        // rather than sliding along a single fixed row.
         const distance = 12 + Math.random() * 30;
         const direction = Math.random() > 0.5 ? 1 : -1;
         const nextLeft = clamp(currentLeft + distance * direction, MIN_LEFT, MAX_LEFT);
+        const nextBottom = clamp(currentBottom + (Math.random() - 0.5) * 22, MIN_BOTTOM, MAX_BOTTOM);
         const duration = 3 + Math.random() * 3.5;
-        setState((s) => ({ ...s, left: nextLeft, bottom: currentBottom, duration, easing: 'ease-in-out', jumping: false }));
+        setState((s) => ({ ...s, left: nextLeft, bottom: nextBottom, duration, easing: 'ease-in-out', jumping: false }));
         waitMs = duration * 1000;
         currentLeft = nextLeft;
+        currentBottom = nextBottom;
       } else {
-        // a couple of quick playful hops
+        // a couple of quick playful hops, with a bit of vertical jitter too
         const distance = 5 + Math.random() * 9;
         const direction = Math.random() > 0.5 ? 1 : -1;
         const nextLeft = clamp(currentLeft + distance * direction, MIN_LEFT, MAX_LEFT);
+        const nextBottom = clamp(currentBottom + (Math.random() - 0.5) * 12, MIN_BOTTOM, MAX_BOTTOM);
         const duration = 0.35 + Math.random() * 0.2;
         setState((s) => ({
           ...s,
           left: nextLeft,
-          bottom: currentBottom,
+          bottom: nextBottom,
           duration,
           easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
           jumping: true,
         }));
         waitMs = duration * 1000 + 150;
         currentLeft = nextLeft;
+        currentBottom = nextBottom;
       }
 
       timeoutRef.current = window.setTimeout(() => {
