@@ -1,5 +1,6 @@
 import { AnderPark } from './components/AnderPark';
 import { AwayReportModal } from './components/AwayReportModal';
+import { BerryChaseGame } from './components/BerryChaseGame';
 import { CharacterDetailModal } from './components/CharacterDetailModal';
 import { DailyLogModal } from './components/DailyLogModal';
 import { DecorationActionModal } from './components/DecorationActionModal';
@@ -72,14 +73,16 @@ function App() {
   const friends = useFriends();
   const gameProgress = useGameProgress();
   const hyenaProgress = gameProgress.getEntry('hyena-defense');
+  const berryProgress = gameProgress.getEntry('berry-chase');
 
   const [detailOpen, setDetailOpen] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
   const [friendsOpen, setFriendsOpen] = useState(false);
   const [dailyLogOpen, setDailyLogOpen] = useState(false);
   const [gamesOpen, setGamesOpen] = useState(false);
-  const [scoreboardOpen, setScoreboardOpen] = useState(false);
+  const [scoreboardGame, setScoreboardGame] = useState<'hyena' | 'berry' | null>(null);
   const [playingHyenaDefense, setPlayingHyenaDefense] = useState(false);
+  const [playingBerryChase, setPlayingBerryChase] = useState(false);
   const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null);
   const [roomInstanceId, setRoomInstanceId] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
@@ -99,8 +102,8 @@ function App() {
   const activeTheme = getTheme(activeThemeId) ?? getTheme('classic')!;
   const parkWidthPercent = 100 + parkExpansionTier * 50;
 
-  // Keep the leaderboard current whenever the local character or Hyena
-  // Defense best score changes.
+  // Keep the leaderboard current whenever the local character or either
+  // minigame's best score changes.
   useEffect(() => {
     if (!character) return;
     friends.syncStats({
@@ -111,6 +114,8 @@ function App() {
       longestStreak: character.streak.longest,
       hyenaHighScore: hyenaProgress.bestScore,
       hyenaLevelReached: hyenaProgress.bestLevel,
+      berryHighScore: berryProgress.bestScore,
+      berryLevelReached: berryProgress.bestLevel,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -120,6 +125,8 @@ function App() {
     character?.streak,
     hyenaProgress.bestScore,
     hyenaProgress.bestLevel,
+    berryProgress.bestScore,
+    berryProgress.bestLevel,
   ]);
 
   useEffect(() => () => window.clearTimeout(celebrateTimeout.current), []);
@@ -146,6 +153,12 @@ function App() {
 
   const handleHyenaGameOver = (finalScore: number, finalLevel: number, fullReward: number) => {
     const result = gameProgress.recordRun('hyena-defense', finalScore, finalLevel, fullReward);
+    if (result.coins > 0) earnCoins(result.coins);
+    return result;
+  };
+
+  const handleBerryGameOver = (finalScore: number, finalLevel: number, fullReward: number) => {
+    const result = gameProgress.recordRun('berry-chase', finalScore, finalLevel, fullReward);
     if (result.coins > 0) earnCoins(result.coins);
     return result;
   };
@@ -326,9 +339,17 @@ function App() {
             setGamesOpen(false);
             setPlayingHyenaDefense(true);
           }}
-          onOpenScoreboard={() => {
+          onScoreboardHyenaDefense={() => {
             setGamesOpen(false);
-            setScoreboardOpen(true);
+            setScoreboardGame('hyena');
+          }}
+          onPlayBerryChase={() => {
+            setGamesOpen(false);
+            setPlayingBerryChase(true);
+          }}
+          onScoreboardBerryChase={() => {
+            setGamesOpen(false);
+            setScoreboardGame('berry');
           }}
           onClose={() => setGamesOpen(false)}
         />
@@ -344,13 +365,39 @@ function App() {
         />
       )}
 
-      {scoreboardOpen && character && (
+      {playingBerryChase && character && (
+        <BerryChaseGame
+          appearanceId={character.appearanceId}
+          colorMode={colorMode}
+          progress={berryProgress}
+          onExit={() => setPlayingBerryChase(false)}
+          onGameOver={handleBerryGameOver}
+        />
+      )}
+
+      {scoreboardGame === 'hyena' && character && (
         <ScoreboardModal
+          title="Hyena Defense Scoreboard"
           friends={friends}
           myNickname={character.nickname}
           myAppearanceId={character.appearanceId}
           myProgress={hyenaProgress}
-          onClose={() => setScoreboardOpen(false)}
+          friendScore={(f) => f.hyenaHighScore}
+          friendLevel={(f) => f.hyenaLevelReached}
+          onClose={() => setScoreboardGame(null)}
+        />
+      )}
+
+      {scoreboardGame === 'berry' && character && (
+        <ScoreboardModal
+          title="Berry Berry Chase Scoreboard"
+          friends={friends}
+          myNickname={character.nickname}
+          myAppearanceId={character.appearanceId}
+          myProgress={berryProgress}
+          friendScore={(f) => f.berryHighScore}
+          friendLevel={(f) => f.berryLevelReached}
+          onClose={() => setScoreboardGame(null)}
         />
       )}
 

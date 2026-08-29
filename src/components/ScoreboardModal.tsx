@@ -1,12 +1,15 @@
 import { getAppearance } from '../data/appearances';
-import type { useFriends } from '../hooks/useFriends';
+import type { FriendProfile, useFriends } from '../hooks/useFriends';
 import type { GameProgressEntry } from '../hooks/useGameProgress';
 
 interface Props {
+  title: string;
   friends: ReturnType<typeof useFriends>;
   myNickname: string;
   myAppearanceId: string;
   myProgress: GameProgressEntry;
+  friendScore: (f: FriendProfile) => number;
+  friendLevel: (f: FriendProfile) => number;
   onClose: () => void;
 }
 
@@ -19,7 +22,16 @@ interface Row {
   level: number;
 }
 
-export function ScoreboardModal({ friends, myNickname, myAppearanceId, myProgress, onClose }: Props) {
+export function ScoreboardModal({
+  title,
+  friends,
+  myNickname,
+  myAppearanceId,
+  myProgress,
+  friendScore,
+  friendLevel,
+  onClose,
+}: Props) {
   const { enabled, ready, username, friends: list } = friends;
 
   const rows: Row[] = [
@@ -29,8 +41,8 @@ export function ScoreboardModal({ friends, myNickname, myAppearanceId, myProgres
       isMe: false,
       nickname: f.nickname || `@${f.username}`,
       appearanceId: f.appearanceId,
-      score: f.hyenaHighScore,
-      level: f.hyenaLevelReached,
+      score: friendScore(f),
+      level: friendLevel(f),
     })),
   ].sort((a, b) => b.score - a.score);
 
@@ -38,7 +50,7 @@ export function ScoreboardModal({ friends, myNickname, myAppearanceId, myProgres
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
       <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl">
         <div className="mb-1 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-emerald-900">Hyena Defense Scoreboard</h2>
+          <h2 className="text-2xl font-bold text-emerald-900">{title}</h2>
           <button onClick={onClose} className="rounded-full px-3 py-1 text-sm text-emerald-700 hover:bg-emerald-50">
             Close
           </button>

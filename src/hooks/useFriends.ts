@@ -11,6 +11,8 @@ export interface FriendProfile {
   longestStreak: number;
   hyenaHighScore: number;
   hyenaLevelReached: number;
+  berryHighScore: number;
+  berryLevelReached: number;
 }
 
 export interface FriendRequest {
@@ -27,6 +29,8 @@ export interface SyncedStats {
   longestStreak: number;
   hyenaHighScore: number;
   hyenaLevelReached: number;
+  berryHighScore: number;
+  berryLevelReached: number;
 }
 
 type ActionResult = { ok: true } | { ok: false; error: string };
@@ -131,6 +135,8 @@ export function useFriends() {
           longestStreak: other.longest_streak,
           hyenaHighScore: other.hyena_high_score ?? 0,
           hyenaLevelReached: other.hyena_level_reached ?? 1,
+          berryHighScore: other.berry_high_score ?? 0,
+          berryLevelReached: other.berry_level_reached ?? 1,
         });
       } else if (r.status === 'pending') {
         const req: FriendRequest = { id: r.id, requesterId: r.requester_id, otherUsername: other.username };
@@ -175,6 +181,8 @@ export function useFriends() {
         longest_streak: stats?.longestStreak ?? 0,
         hyena_high_score: stats?.hyenaHighScore ?? 0,
         hyena_level_reached: stats?.hyenaLevelReached ?? 1,
+        berry_high_score: stats?.berryHighScore ?? 0,
+        berry_level_reached: stats?.berryLevelReached ?? 1,
         updated_at: new Date().toISOString(),
       });
       if (upsertError) {
@@ -202,6 +210,8 @@ export function useFriends() {
           longest_streak: stats.longestStreak,
           hyena_high_score: stats.hyenaHighScore,
           hyena_level_reached: stats.hyenaLevelReached,
+          berry_high_score: stats.berryHighScore,
+          berry_level_reached: stats.berryLevelReached,
           updated_at: new Date().toISOString(),
         })
         .eq('id', userId)
