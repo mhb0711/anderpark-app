@@ -87,6 +87,12 @@ function getCtx(): AudioContext | null {
   return ctx;
 }
 
+// Shared with lib/music.ts — background music and one-shot effects sit on
+// the same AudioContext instead of opening a second one.
+export function getAudioContext(): AudioContext | null {
+  return getCtx();
+}
+
 function effectiveVolume(): number {
   return settings.muted ? 0 : settings.volume;
 }

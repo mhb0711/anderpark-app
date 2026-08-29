@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { playSound } from '../lib/sound';
 import { restartApp } from '../lib/resetApp';
+import { useMusicSettings } from '../hooks/useMusicSettings';
 import { useRequireTaskNote } from '../hooks/useRequireTaskNote';
 import { useSoundSettings } from '../hooks/useSoundSettings';
 import { RestartConfirmModal } from './RestartConfirmModal';
@@ -18,6 +19,7 @@ export function SettingsMenu({ colorMode, onToggleColorMode, onOpenFriends, onOp
   const [confirmingRestart, setConfirmingRestart] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const { volume, muted, setVolume, setMuted } = useSoundSettings();
+  const { volume: musicVolume, muted: musicMuted, setVolume: setMusicVolume, setMuted: setMusicMuted } = useMusicSettings();
   const { requireNote, setRequireTaskNote } = useRequireTaskNote();
 
   useEffect(() => {
@@ -75,6 +77,31 @@ export function SettingsMenu({ colorMode, onToggleColorMode, onOpenFriends, onOp
               disabled={muted}
               onChange={(e) => setVolume(Number(e.target.value))}
               onPointerUp={() => playSound('click')}
+              className="w-full accent-emerald-600 disabled:opacity-40"
+            />
+          </div>
+
+          <div className="mb-4">
+            <div className="mb-1 flex items-center justify-between">
+              <label htmlFor="music-volume" className="text-sm font-semibold text-emerald-900">
+                Music
+              </label>
+              <button
+                onClick={() => setMusicMuted(!musicMuted)}
+                className="text-xs font-semibold text-emerald-600 hover:text-emerald-800"
+              >
+                {musicMuted ? 'Unmute' : 'Mute'}
+              </button>
+            </div>
+            <input
+              id="music-volume"
+              type="range"
+              min={0}
+              max={1}
+              step={0.05}
+              value={musicVolume}
+              disabled={musicMuted}
+              onChange={(e) => setMusicVolume(Number(e.target.value))}
               className="w-full accent-emerald-600 disabled:opacity-40"
             />
           </div>
