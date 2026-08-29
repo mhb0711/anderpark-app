@@ -80,7 +80,52 @@ create policy "users can delete requests they're part of"
   to authenticated
   using (auth.uid() = requester_id or auth.uid() = addressee_id);
 
--- Realtime: let clients subscribe to live changes on both tables so a
--- friend's level/streak or an incoming request shows up without a refresh.
+-- Task board: a user can publish one of their own goal tasks so anyone else
+-- can browse it and copy it into their own goals. Anyone signed in can read
+-- the whole board; only the submitter can delete their own entry.
+create table if not exists public.shared_tasks (
+  id uuid primary key default gen_random_uuid(),
+  need_type text not null,
+  label text not null,
+  restore_amount integer not null check (restore_amount > 0),
+  submitted_by uuid not null references auth.users(id) on delete cascade,
+  use_count integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
+alter table public.shared_tasks enable row level security;
+
+create policy "shared tasks are readable by any authenticated user"
+  on public.shared_tasks for select
+  to authenticated
+  using (true);
+
+create policy "users can submit their own tasks"
+  on public.shared_tasks for insert
+  to authenticated
+  with check (auth.uid() = submitted_by);
+
+create policy "users can delete tasks they submitted"
+  on public.shared_tasks for delete
+  to authenticated
+  using (auth.uid() = submitted_by);
+
+-- Lets any signed-in user bump a task's use count when they copy it, without
+-- granting general UPDATE access to rows they don't own.
+create or replace function public.increment_shared_task_use(task_id uuid)
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  update public.shared_tasks set use_count = use_count + 1 where id = task_id;
+$$;
+
+grant execute on function public.increment_shared_task_use(uuid) to authenticated;
+
+-- Realtime: let clients subscribe to live changes on all three tables so a
+-- friend's level/streak, an incoming request, or a new board task shows up
+-- without a refresh.
 alter publication supabase_realtime add table public.profiles;
 alter publication supabase_realtime add table public.friendships;
+alter publication supabase_realtime add table public.shared_tasks;

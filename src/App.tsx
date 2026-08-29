@@ -17,12 +17,14 @@ import { SettingsMenu } from './components/SettingsMenu';
 import { ShareModal } from './components/ShareModal';
 import { ShopModal } from './components/ShopModal';
 import { StreakBadge } from './components/StreakBadge';
+import { TaskBoardModal } from './components/TaskBoardModal';
 import { getTheme } from './data/themes';
 import { displayStreak } from './data/streak';
 import { useCharacter } from './hooks/useCharacter';
 import { useColorMode } from './hooks/useColorMode';
 import { useFriends } from './hooks/useFriends';
 import { useGameProgress } from './hooks/useGameProgress';
+import { useTaskBoard } from './hooks/useTaskBoard';
 import { useNeedNotifications } from './hooks/useNeedNotifications';
 import { usePark } from './hooks/usePark';
 import { playSound } from './lib/sound';
@@ -74,6 +76,7 @@ function App() {
   const { colorMode, toggleColorMode } = useColorMode();
   useNeedNotifications(character);
   const friends = useFriends();
+  const taskBoard = useTaskBoard();
   const gameProgress = useGameProgress();
   const hyenaProgress = gameProgress.getEntry('hyena-defense');
   const berryProgress = gameProgress.getEntry('berry-chase');
@@ -83,6 +86,7 @@ function App() {
   const [friendsOpen, setFriendsOpen] = useState(false);
   const [dailyLogOpen, setDailyLogOpen] = useState(false);
   const [activityLogOpen, setActivityLogOpen] = useState(false);
+  const [taskBoardOpen, setTaskBoardOpen] = useState(false);
   const [gamesOpen, setGamesOpen] = useState(false);
   const [scoreboardGame, setScoreboardGame] = useState<'hyena' | 'berry' | null>(null);
   const [playingHyenaDefense, setPlayingHyenaDefense] = useState(false);
@@ -259,6 +263,7 @@ function App() {
             onToggleColorMode={toggleColorMode}
             onOpenFriends={() => setFriendsOpen(true)}
             onOpenActivityLog={() => setActivityLogOpen(true)}
+            onOpenTaskBoard={() => setTaskBoardOpen(true)}
           />
         </div>
       </header>
@@ -308,6 +313,15 @@ function App() {
 
       {character && activityLogOpen && (
         <ActivityLogModal character={character} onClose={() => setActivityLogOpen(false)} />
+      )}
+
+      {character && taskBoardOpen && (
+        <TaskBoardModal
+          character={character}
+          taskBoard={taskBoard}
+          onAddCustomTask={addCustomTask}
+          onClose={() => setTaskBoardOpen(false)}
+        />
       )}
 
       {shopOpen && (

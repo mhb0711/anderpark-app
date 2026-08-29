@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { supabase, supabaseConfigured } from '../lib/supabase';
+import { ensureAnonymousSession, supabase, supabaseConfigured } from '../lib/supabase';
 
 export interface FriendProfile {
   id: string;
@@ -34,30 +34,6 @@ export interface SyncedStats {
 }
 
 type ActionResult = { ok: true } | { ok: false; error: string };
-
-// Module-level (not per-hook-instance) so two near-simultaneous mounts of
-// this hook — e.g. React StrictMode's dev-only double effect invocation —
-// converge on the same sign-in instead of each independently calling
-// signInAnonymously(), which would leave the client's actual session (last
-// write to its localStorage) mismatched from whichever uid a given effect
-// instance happened to set in state, causing every write to fail RLS.
-let sessionPromise: Promise<string | null> | null = null;
-
-async function ensureAnonymousSession(): Promise<string | null> {
-  if (!supabase) return null;
-  if (!sessionPromise) {
-    sessionPromise = (async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (session?.user.id) return session.user.id;
-      const { data, error: signInError } = await supabase.auth.signInAnonymously();
-      if (signInError) throw signInError;
-      return data.user?.id ?? null;
-    })();
-  }
-  return sessionPromise;
-}
 
 // Anonymous-auth friends/leaderboard backed by Supabase. Every method is a
 // no-op (or returns a clear "not connected" error) until .env.local has real

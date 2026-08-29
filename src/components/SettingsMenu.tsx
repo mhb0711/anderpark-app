@@ -10,9 +10,10 @@ interface Props {
   onToggleColorMode: () => void;
   onOpenFriends: () => void;
   onOpenActivityLog: () => void;
+  onOpenTaskBoard: () => void;
 }
 
-export function SettingsMenu({ colorMode, onToggleColorMode, onOpenFriends, onOpenActivityLog }: Props) {
+export function SettingsMenu({ colorMode, onToggleColorMode, onOpenFriends, onOpenActivityLog, onOpenTaskBoard }: Props) {
   const [open, setOpen] = useState(false);
   const [confirmingRestart, setConfirmingRestart] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -127,6 +128,18 @@ export function SettingsMenu({ colorMode, onToggleColorMode, onOpenFriends, onOp
           >
             <span>Friends</span>
             <span className="text-emerald-600">Add / link →</span>
+          </button>
+
+          <button
+            onClick={() => {
+              playSound('click');
+              setOpen(false);
+              onOpenTaskBoard();
+            }}
+            className="mb-2 flex w-full items-center justify-between rounded-xl border border-emerald-100 px-3 py-2 text-sm font-semibold text-emerald-900 hover:bg-emerald-50"
+          >
+            <span>Task Board</span>
+            <span className="text-emerald-600">Browse →</span>
           </button>
 
           <button
