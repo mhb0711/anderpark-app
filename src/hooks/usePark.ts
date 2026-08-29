@@ -191,14 +191,18 @@ export function usePark() {
     }));
   }, []);
 
-  const buyOutfit = useCallback((outfitId: string) => {
-    setPark((p) => {
-      if (p.ownedOutfitIds.includes(outfitId)) return p;
+  // Returns whether the purchase went through (same pattern as buyNew) so
+  // callers — e.g. a purchase sound effect — only fire on an actual buy.
+  const buyOutfit = useCallback(
+    (outfitId: string): boolean => {
+      if (park.ownedOutfitIds.includes(outfitId)) return false;
       const outfit = getOutfit(outfitId);
-      if (!outfit || p.coins < outfit.cost) return p;
-      return { ...p, coins: p.coins - outfit.cost, ownedOutfitIds: [...p.ownedOutfitIds, outfitId] };
-    });
-  }, []);
+      if (!outfit || park.coins < outfit.cost) return false;
+      setPark((p) => ({ ...p, coins: p.coins - outfit.cost, ownedOutfitIds: [...p.ownedOutfitIds, outfitId] }));
+      return true;
+    },
+    [park],
+  );
 
   const equipOutfit = useCallback((outfitId: string | null) => {
     setPark((p) => {
@@ -207,27 +211,28 @@ export function usePark() {
     });
   }, []);
 
-  const buyTheme = useCallback((themeId: string) => {
-    setPark((p) => {
-      if (p.ownedThemeIds.includes(themeId)) return p;
+  const buyTheme = useCallback(
+    (themeId: string): boolean => {
+      if (park.ownedThemeIds.includes(themeId)) return false;
       const theme = getTheme(themeId);
-      if (!theme || p.coins < theme.cost) return p;
-      return { ...p, coins: p.coins - theme.cost, ownedThemeIds: [...p.ownedThemeIds, themeId] };
-    });
-  }, []);
+      if (!theme || park.coins < theme.cost) return false;
+      setPark((p) => ({ ...p, coins: p.coins - theme.cost, ownedThemeIds: [...p.ownedThemeIds, themeId] }));
+      return true;
+    },
+    [park],
+  );
 
   const setActiveTheme = useCallback((themeId: string) => {
     setPark((p) => (p.ownedThemeIds.includes(themeId) ? { ...p, activeThemeId: themeId } : p));
   }, []);
 
-  const buyParkExpansion = useCallback(() => {
-    setPark((p) => {
-      if (p.parkExpansionTier >= MAX_PARK_EXPANSION_TIER) return p;
-      const cost = PARK_EXPANSION_COSTS[p.parkExpansionTier];
-      if (p.coins < cost) return p;
-      return { ...p, coins: p.coins - cost, parkExpansionTier: p.parkExpansionTier + 1 };
-    });
-  }, []);
+  const buyParkExpansion = useCallback((): boolean => {
+    if (park.parkExpansionTier >= MAX_PARK_EXPANSION_TIER) return false;
+    const cost = PARK_EXPANSION_COSTS[park.parkExpansionTier];
+    if (park.coins < cost) return false;
+    setPark((p) => ({ ...p, coins: p.coins - cost, parkExpansionTier: p.parkExpansionTier + 1 }));
+    return true;
+  }, [park]);
 
   const addRoomFurniture = useCallback((instanceId: string, itemId: string) => {
     setPark((p) => {

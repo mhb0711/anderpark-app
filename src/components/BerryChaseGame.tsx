@@ -3,6 +3,7 @@ import { getAppearance } from '../data/appearances';
 import { HYENA_MATRICES } from '../data/hyenaArt';
 import { generateMaze, isWalkable, GRID_H, GRID_W, type Cell, type Pos } from '../data/mazeGen';
 import type { GameProgressEntry, RunResult } from '../hooks/useGameProgress';
+import { playSound } from '../lib/sound';
 import { PixelSprite } from './PixelDecor';
 
 const PLAYER_SPEED = 4.6; // cells per second
@@ -225,10 +226,12 @@ export function BerryChaseGame({ appearanceId, colorMode, progress, onExit, onGa
             s.grid[p.row][p.col] = 1;
             s.score += BERRY_SCORE;
             s.berriesLeft -= 1;
+            playSound('eat');
           } else if (cell === 3) {
             s.grid[p.row][p.col] = 1;
             s.score += POWER_BERRY_SCORE;
             s.berriesLeft -= 1;
+            playSound('powerup');
             for (const h of s.hyenas) {
               if (h.eatenUntil > elapsedMsRef.current) continue;
               h.frightenedUntil = elapsedMsRef.current + FRIGHTENED_MS;
@@ -281,8 +284,10 @@ export function BerryChaseGame({ appearanceId, colorMode, progress, onExit, onGa
             if (frightened) {
               h.eatenUntil = elapsedMsRef.current + EATEN_RESPAWN_MS;
               s.score += HYENA_EATEN_SCORE;
+              playSound('hit');
             } else {
               s.lives -= 1;
+              playSound('error');
               if (s.lives <= 0) {
                 s.status = 'lost';
               } else {
@@ -296,6 +301,7 @@ export function BerryChaseGame({ appearanceId, colorMode, progress, onExit, onGa
         if (s.status === 'playing' && s.berriesLeft <= 0) {
           s.status = 'levelup';
           s.levelBannerUntil = elapsedMsRef.current + LEVEL_BANNER_MS;
+          playSound('levelup');
         }
 
         if (s.status === 'lost' && !gameOverHandledRef.current) {

@@ -1,4 +1,5 @@
 import { HUNGRY_THRESHOLD, NEED_DEFINITIONS } from '../data/needs';
+import { playSound } from '../lib/sound';
 import { NeedIcon } from './NeedIcon';
 import type { Character } from '../types';
 
@@ -38,7 +39,10 @@ export function NeedHud({ character, onSelect, onOpenGames }: Props) {
         })}
       </button>
       <button
-        onClick={onOpenGames}
+        onClick={() => {
+          playSound('click');
+          onOpenGames();
+        }}
         title="Games"
         className="shrink-0 rounded-full border border-white/30 bg-black/70 px-3 py-2 font-mono text-[11px] font-bold text-white backdrop-blur-sm"
       >

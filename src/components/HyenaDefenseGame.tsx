@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { getAppearance } from '../data/appearances';
 import { HYENA_MATRICES } from '../data/hyenaArt';
 import type { GameProgressEntry, RunResult } from '../hooks/useGameProgress';
+import { playSound } from '../lib/sound';
 import { PixelSprite } from './PixelDecor';
 
 interface Bullet {
@@ -192,6 +193,7 @@ export function HyenaDefenseGame({ appearanceId, colorMode, progress, onExit, on
         if (shootHeldRef.current && now - s.lastShotAt > SHOOT_COOLDOWN_MS) {
           s.bullets.push({ id: nextBulletId.current++, x: s.playerX, y: PLAYER_Y - 4 });
           s.lastShotAt = now;
+          playSound('shoot');
         }
 
         s.bullets = s.bullets.filter((b) => b.y > -5).map((b) => ({ ...b, y: b.y - BULLET_SPEED * dt }));
@@ -239,6 +241,7 @@ export function HyenaDefenseGame({ appearanceId, colorMode, progress, onExit, on
               enemy.alive = false;
               b.y = -999;
               s.score += 10;
+              playSound('hit');
               break;
             }
           }
@@ -250,6 +253,7 @@ export function HyenaDefenseGame({ appearanceId, colorMode, progress, onExit, on
           if (Math.abs(b.x - s.playerX) < PLAYER_HALF_WIDTH && Math.abs(b.y - PLAYER_Y) < 5) {
             b.y = 999;
             s.lives -= 1;
+            playSound('error');
           }
         }
         s.enemyBullets = s.enemyBullets.filter((b) => b.y < 105);
@@ -264,6 +268,7 @@ export function HyenaDefenseGame({ appearanceId, colorMode, progress, onExit, on
         if (s.status === 'playing' && stillAlive.length === 0) {
           s.status = 'levelup';
           s.levelBannerUntil = elapsedMsRef.current + LEVEL_BANNER_MS;
+          playSound('levelup');
         }
 
         if (s.status === 'lost' && !gameOverHandledRef.current) {

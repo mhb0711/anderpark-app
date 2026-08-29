@@ -12,6 +12,7 @@ import { NeedHud } from './components/NeedHud';
 import { OnboardingModal } from './components/OnboardingModal';
 import { RoomModal } from './components/RoomModal';
 import { ScoreboardModal } from './components/ScoreboardModal';
+import { SettingsMenu } from './components/SettingsMenu';
 import { ShareModal } from './components/ShareModal';
 import { ShopModal } from './components/ShopModal';
 import { StreakBadge } from './components/StreakBadge';
@@ -23,6 +24,7 @@ import { useFriends } from './hooks/useFriends';
 import { useGameProgress } from './hooks/useGameProgress';
 import { useNeedNotifications } from './hooks/useNeedNotifications';
 import { usePark } from './hooks/usePark';
+import { playSound } from './lib/sound';
 import { useEffect, useRef, useState } from 'react';
 import type { NeedType } from './types';
 
@@ -147,7 +149,12 @@ function App() {
   // Returns the actual awarded amount (may be doubled by Lucky Task) so the UI can show it accurately.
   const handleCompleteTask = (needType: NeedType, taskId: string, note: string) => {
     const reward = completeTask(needType, taskId, note);
-    if (reward > 0) earnCoins(reward);
+    if (reward > 0) {
+      earnCoins(reward);
+      // NeedType values (food/water/shelter/weather/rest/health) line up
+      // 1:1 with sound names, so each need gets its own distinct SFX.
+      playSound(needType);
+    }
     return reward;
   };
 
@@ -166,11 +173,35 @@ function App() {
   const handleBuy = (lineId: string) => {
     const newId = buyNew(lineId);
     if (newId) {
+      playSound('purchase');
       setCelebrateInstanceId(newId);
       window.clearTimeout(celebrateTimeout.current);
       celebrateTimeout.current = window.setTimeout(() => setCelebrateInstanceId(null), 1600);
     }
   };
+
+  const handleBuyOutfit = (id: string) => {
+    if (buyOutfit(id)) playSound('purchase');
+  };
+
+  const handleBuyTheme = (id: string) => {
+    if (buyTheme(id)) playSound('purchase');
+  };
+
+  const handleBuyParkExpansion = () => {
+    if (buyParkExpansion()) playSound('purchase');
+  };
+
+  // Level-up and death are both driven by state changing elsewhere
+  // (useCharacter), so their sounds fire from an effect rather than a
+  // specific button handler.
+  useEffect(() => {
+    if (leveledUp) playSound('levelup');
+  }, [leveledUp]);
+
+  useEffect(() => {
+    if (deceased) playSound('death');
+  }, [deceased]);
 
   return (
     <div className="h-dvh overflow-hidden">
@@ -197,28 +228,12 @@ function App() {
         </div>
         <div className="flex items-center gap-2">
           {character && <StreakBadge streak={character.streak} />}
-          <button
-            onClick={toggleColorMode}
-            title="Toggle color"
-            className="border border-white/60 bg-transparent px-3 py-2 font-mono text-xs font-bold text-white hover:bg-white/10"
-          >
-            {colorMode ? '◑ COLOR' : '◐ MONO'}
-          </button>
-          <button
-            onClick={() => setFriendsOpen(true)}
-            title="Friends"
-            className="border border-white/60 bg-transparent px-3 py-2 text-white hover:bg-white/10"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="8.5" cy="8" r="3" />
-              <path d="M2.5 19c0-3.3 2.7-6 6-6s6 2.7 6 6" />
-              <circle cx="17" cy="9" r="2.5" />
-              <path d="M14.5 13.2c2.9.4 5 2.9 5 5.8" />
-            </svg>
-          </button>
           {character && (
             <button
-              onClick={() => setDailyLogOpen(true)}
+              onClick={() => {
+                playSound('click');
+                setDailyLogOpen(true);
+              }}
               title="Today's log"
               className="border border-white/60 bg-transparent px-3 py-2 text-white hover:bg-white/10"
             >
@@ -229,11 +244,19 @@ function App() {
             </button>
           )}
           <button
-            onClick={() => setShopOpen(true)}
+            onClick={() => {
+              playSound('click');
+              setShopOpen(true);
+            }}
             className="border border-white/60 bg-transparent px-3 py-2 font-mono text-xs font-bold text-white hover:bg-white/10"
           >
             SHOP · {displayCoins}c
           </button>
+          <SettingsMenu
+            colorMode={colorMode}
+            onToggleColorMode={toggleColorMode}
+            onOpenFriends={() => setFriendsOpen(true)}
+          />
         </div>
       </header>
 
@@ -289,14 +312,14 @@ function App() {
           onBuy={handleBuy}
           ownedOutfitIds={ownedOutfitIds}
           equippedOutfitId={equippedOutfitId}
-          onBuyOutfit={buyOutfit}
+          onBuyOutfit={handleBuyOutfit}
           onEquipOutfit={equipOutfit}
           ownedThemeIds={ownedThemeIds}
           activeThemeId={activeThemeId}
-          onBuyTheme={buyTheme}
+          onBuyTheme={handleBuyTheme}
           onSetActiveTheme={setActiveTheme}
           parkExpansionTier={parkExpansionTier}
-          onBuyParkExpansion={buyParkExpansion}
+          onBuyParkExpansion={handleBuyParkExpansion}
           onClose={() => setShopOpen(false)}
         />
       )}
