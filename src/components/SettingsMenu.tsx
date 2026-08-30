@@ -12,9 +12,17 @@ interface Props {
   onOpenFriends: () => void;
   onOpenActivityLog: () => void;
   onOpenTaskBoard: () => void;
+  onOpenTutorial: () => void;
 }
 
-export function SettingsMenu({ colorMode, onToggleColorMode, onOpenFriends, onOpenActivityLog, onOpenTaskBoard }: Props) {
+export function SettingsMenu({
+  colorMode,
+  onToggleColorMode,
+  onOpenFriends,
+  onOpenActivityLog,
+  onOpenTaskBoard,
+  onOpenTutorial,
+}: Props) {
   const [open, setOpen] = useState(false);
   const [confirmingRestart, setConfirmingRestart] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -43,7 +51,7 @@ export function SettingsMenu({ colorMode, onToggleColorMode, onOpenFriends, onOp
       <button
         onClick={() => setOpen((v) => !v)}
         title="Settings"
-        className="border border-white/60 bg-transparent px-3 py-2 text-white hover:bg-white/10"
+        className="rounded-full border border-white/30 bg-black/70 px-3 py-2 text-white backdrop-blur-sm hover:bg-white/10"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="3" />
@@ -54,6 +62,18 @@ export function SettingsMenu({ colorMode, onToggleColorMode, onOpenFriends, onOp
       {open && (
         <div className="absolute right-0 top-full z-20 mt-2 w-72 rounded-2xl border border-emerald-100 bg-white p-4 text-left shadow-2xl">
           <p className="mb-3 text-xs font-bold uppercase tracking-wide text-emerald-500">Settings</p>
+
+          <button
+            onClick={() => {
+              playSound('click');
+              setOpen(false);
+              onOpenTutorial();
+            }}
+            className="mb-4 flex w-full items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-900 hover:bg-emerald-100"
+          >
+            <span>Tutorial</span>
+            <span className="text-emerald-600">How this works →</span>
+          </button>
 
           <div className="mb-4">
             <div className="mb-1 flex items-center justify-between">

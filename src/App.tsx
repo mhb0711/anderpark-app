@@ -18,6 +18,8 @@ import { ShareModal } from './components/ShareModal';
 import { ShopModal } from './components/ShopModal';
 import { StreakBadge } from './components/StreakBadge';
 import { TaskBoardModal } from './components/TaskBoardModal';
+import { TutorialModal } from './components/TutorialModal';
+import logoImg from './assets/logo.png';
 import { getTheme } from './data/themes';
 import { displayStreak } from './data/streak';
 import { useCharacter } from './hooks/useCharacter';
@@ -87,6 +89,7 @@ function App() {
   const [dailyLogOpen, setDailyLogOpen] = useState(false);
   const [activityLogOpen, setActivityLogOpen] = useState(false);
   const [taskBoardOpen, setTaskBoardOpen] = useState(false);
+  const [tutorialOpen, setTutorialOpen] = useState(false);
   const [gamesOpen, setGamesOpen] = useState(false);
   const [scoreboardGame, setScoreboardGame] = useState<'hyena' | 'berry' | null>(null);
   const [playingHyenaDefense, setPlayingHyenaDefense] = useState(false);
@@ -225,48 +228,45 @@ function App() {
         onMoveDecoration={moveDecoration}
       />
 
-      <header className="fixed inset-x-0 top-0 z-10 flex items-center justify-between border-b border-white/20 bg-black/70 px-4 pb-3 backdrop-blur-sm [padding-top:calc(0.75rem+env(safe-area-inset-top))]">
-        <div>
-          <h1 className="font-mono text-xl font-bold tracking-wide text-white">ANDERPARK</h1>
-          <p className="hidden font-mono text-[11px] text-white/60 sm:block">
-            Turn your goals into needs. Keep them met to keep your character alive.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {character && <StreakBadge streak={character.streak} />}
-          {character && (
-            <button
-              onClick={() => {
-                playSound('click');
-                setDailyLogOpen(true);
-              }}
-              title="Today's log"
-              className="border border-white/60 bg-transparent px-3 py-2 text-white hover:bg-white/10"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="5" y="3" width="14" height="18" rx="2" />
-                <path d="M9 8h6M9 12h6M9 16h3" />
-              </svg>
-            </button>
-          )}
+      <div className="fixed left-3 z-10 [top:calc(0.75rem+env(safe-area-inset-top))]">
+        <img src={logoImg} alt="AnderPark" className="h-9 w-auto drop-shadow-lg sm:h-11" />
+      </div>
+
+      <div className="fixed right-3 z-10 flex items-center gap-2 [top:calc(0.75rem+env(safe-area-inset-top))]">
+        {character && <StreakBadge streak={character.streak} />}
+        {character && (
           <button
             onClick={() => {
               playSound('click');
-              setShopOpen(true);
+              setDailyLogOpen(true);
             }}
-            className="border border-white/60 bg-transparent px-3 py-2 font-mono text-xs font-bold text-white hover:bg-white/10"
+            title="Today's log"
+            className="rounded-full border border-white/30 bg-black/70 px-3 py-2 text-white backdrop-blur-sm hover:bg-white/10"
           >
-            SHOP · {displayCoins}c
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="5" y="3" width="14" height="18" rx="2" />
+              <path d="M9 8h6M9 12h6M9 16h3" />
+            </svg>
           </button>
-          <SettingsMenu
-            colorMode={colorMode}
-            onToggleColorMode={toggleColorMode}
-            onOpenFriends={() => setFriendsOpen(true)}
-            onOpenActivityLog={() => setActivityLogOpen(true)}
-            onOpenTaskBoard={() => setTaskBoardOpen(true)}
-          />
-        </div>
-      </header>
+        )}
+        <button
+          onClick={() => {
+            playSound('click');
+            setShopOpen(true);
+          }}
+          className="rounded-full border border-white/30 bg-black/70 px-3 py-2 font-mono text-xs font-bold text-white backdrop-blur-sm hover:bg-white/10"
+        >
+          SHOP · {displayCoins}c
+        </button>
+        <SettingsMenu
+          colorMode={colorMode}
+          onToggleColorMode={toggleColorMode}
+          onOpenFriends={() => setFriendsOpen(true)}
+          onOpenActivityLog={() => setActivityLogOpen(true)}
+          onOpenTaskBoard={() => setTaskBoardOpen(true)}
+          onOpenTutorial={() => setTutorialOpen(true)}
+        />
+      </div>
 
       <div className="fixed bottom-20 right-3 z-10 flex flex-col overflow-hidden rounded-full border border-white/40 bg-black/70">
         <button
@@ -323,6 +323,8 @@ function App() {
           onClose={() => setTaskBoardOpen(false)}
         />
       )}
+
+      {tutorialOpen && <TutorialModal onClose={() => setTutorialOpen(false)} />}
 
       {shopOpen && (
         <ShopModal

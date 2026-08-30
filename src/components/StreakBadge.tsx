@@ -14,7 +14,7 @@ export function StreakBadge({ streak }: { streak: Streak }) {
   return (
     <span
       title={title}
-      className={`flex items-center gap-1 rounded-full border px-2.5 py-1.5 font-mono text-xs font-bold ${
+      className={`flex items-center gap-1 rounded-full border bg-black/70 px-2.5 py-1.5 font-mono text-xs font-bold backdrop-blur-sm ${
         broken
           ? 'border-white/30 text-white/50'
           : atRisk
