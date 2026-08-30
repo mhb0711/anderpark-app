@@ -99,17 +99,23 @@ export function mintDemoFriend(username: string): DemoFriend {
 export interface DemoSharedTask {
   id: string;
   needType: NeedType;
+  goalTitle: string;
   label: string;
   restoreAmount: number;
   username: string;
   useCount: number;
 }
 
+// Goal titles here deliberately reuse a few from data/goalPresets.ts where a
+// natural match exists (e.g. "Study for an exam") — same principle as
+// GOAL_PRESETS itself: a goal isn't inherently a Food goal or a Health goal,
+// it just happened to land in whichever category slot the sharer had open.
 export const DEMO_SHARED_TASKS: DemoSharedTask[] = [
-  { id: 'demo-t1', needType: 'food', label: 'Meal-prepped for the week', restoreAmount: 8, username: 'panda_prime', useCount: 14 },
-  { id: 'demo-t2', needType: 'water', label: 'Drank a full bottle before noon', restoreAmount: 4, username: 'sadie_owl', useCount: 9 },
-  { id: 'demo-t3', needType: 'rest', label: 'In bed before midnight', restoreAmount: 6, username: 'jmiles', useCount: 22 },
-  { id: 'demo-t4', needType: 'health', label: 'Went for a 20-minute walk', restoreAmount: 5, username: 'taylorw', useCount: 7 },
-  { id: 'demo-t5', needType: 'shelter', label: 'Cleared the desk before bed', restoreAmount: 4, username: 'panda_prime', useCount: 11 },
-  { id: 'demo-t6', needType: 'weather', label: 'Packed a jacket, checked the forecast', restoreAmount: 3, username: 'sadie_owl', useCount: 5 },
+  { id: 'demo-t1', needType: 'food', goalTitle: 'Cook at home', label: 'Meal-prepped for the week', restoreAmount: 7, username: 'panda_prime', useCount: 14 },
+  { id: 'demo-t2', needType: 'water', goalTitle: 'Stay hydrated', label: 'Drank a full bottle before noon', restoreAmount: 4, username: 'sadie_owl', useCount: 9 },
+  { id: 'demo-t3', needType: 'rest', goalTitle: 'Get consistent sleep', label: 'In bed before midnight', restoreAmount: 6, username: 'jmiles', useCount: 22 },
+  { id: 'demo-t4', needType: 'health', goalTitle: 'Study for an exam', label: 'Reviewed lecture notes', restoreAmount: 4, username: 'taylorw', useCount: 16 },
+  { id: 'demo-t5', needType: 'shelter', goalTitle: 'Declutter', label: 'Cleared the desk before bed', restoreAmount: 4, username: 'panda_prime', useCount: 11 },
+  { id: 'demo-t6', needType: 'weather', goalTitle: 'Stay weather-ready', label: 'Packed a jacket, checked the forecast', restoreAmount: 3, username: 'sadie_owl', useCount: 5 },
+  { id: 'demo-t7', needType: 'health', goalTitle: 'Go to the gym', label: 'Went for a 20-minute walk', restoreAmount: 5, username: 'jmiles', useCount: 7 },
 ];

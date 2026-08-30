@@ -57,7 +57,7 @@ const SECTIONS: Section[] = [
   },
   {
     title: '6. Settings',
-    body: 'Sound effects and music volume, Mono/Color mode, whether task notes are required, and quick links to everything else in this list.',
+    body: 'Sound effects and music volume, Classic/Color mode, whether task notes are required, and quick links to everything else in this list.',
     image: img06Settings,
     alt: 'The Settings dropdown panel with sound, music, and color mode controls',
   },
@@ -71,7 +71,7 @@ const SECTIONS: Section[] = [
     title: '8. Task Board',
     body: 'Publish one of your own tasks so others can copy it, or grab one someone else already shared straight into your goals.',
     image: img08TaskBoard,
-    alt: 'The Task Board showing shareable tasks grouped by need',
+    alt: 'The Task Board showing shareable tasks grouped by goal',
   },
   {
     title: '9. Friends',

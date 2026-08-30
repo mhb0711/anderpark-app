@@ -6,6 +6,7 @@ import type { NeedType } from '../types';
 export interface SharedTask {
   id: string;
   needType: NeedType;
+  goalTitle: string;
   label: string;
   restoreAmount: number;
   username: string;
@@ -70,7 +71,7 @@ export function useTaskBoard() {
     if (!supabase) return;
     const { data: rows, error: fetchError } = await supabase
       .from('shared_tasks')
-      .select('id, need_type, label, restore_amount, submitted_by, use_count, created_at')
+      .select('id, need_type, goal_title, label, restore_amount, submitted_by, use_count, created_at')
       .order('created_at', { ascending: false })
       .limit(200);
     if (fetchError || !rows) {
@@ -88,6 +89,7 @@ export function useTaskBoard() {
       rows.map((r) => ({
         id: r.id as string,
         needType: r.need_type as NeedType,
+        goalTitle: r.goal_title as string,
         label: r.label as string,
         restoreAmount: r.restore_amount as number,
         username: usernameById.get(r.submitted_by as string) ?? 'someone',
@@ -114,10 +116,20 @@ export function useTaskBoard() {
   }, [ready, refetch]);
 
   const shareTask = useCallback(
-    async (needType: NeedType, label: string, restoreAmount: number): Promise<ActionResult> => {
+    async (needType: NeedType, goalTitle: string, label: string, restoreAmount: number): Promise<ActionResult> => {
       if (demoMode) {
         setTasks((prev) => [
-          { id: `demo-you-${Date.now()}`, needType, label, restoreAmount, username: 'you', useCount: 0, createdAt: Date.now(), ownedByMe: true },
+          {
+            id: `demo-you-${Date.now()}`,
+            needType,
+            goalTitle,
+            label,
+            restoreAmount,
+            username: 'you',
+            useCount: 0,
+            createdAt: Date.now(),
+            ownedByMe: true,
+          },
           ...prev,
         ]);
         return { ok: true };
@@ -125,7 +137,7 @@ export function useTaskBoard() {
       if (!supabase || !userId) return { ok: false, error: 'Not connected' };
       const { error: insertError } = await supabase
         .from('shared_tasks')
-        .insert({ need_type: needType, label, restore_amount: restoreAmount, submitted_by: userId });
+        .insert({ need_type: needType, goal_title: goalTitle, label, restore_amount: restoreAmount, submitted_by: userId });
       if (insertError) return { ok: false, error: insertError.message };
       await refetch();
       return { ok: true };

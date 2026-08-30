@@ -148,7 +148,7 @@ export function SettingsMenu({
             className="mb-2 flex w-full items-center justify-between rounded-xl border border-emerald-100 px-3 py-2 text-sm font-semibold text-emerald-900 hover:bg-emerald-50"
           >
             <span>Park colors</span>
-            <span className="text-emerald-600">{colorMode ? 'Color' : 'Mono'}</span>
+            <span className="text-emerald-600">{colorMode ? 'Color' : 'Classic'}</span>
           </button>
 
           <button

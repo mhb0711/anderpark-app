@@ -86,12 +86,18 @@ create policy "users can delete requests they're part of"
 create table if not exists public.shared_tasks (
   id uuid primary key default gen_random_uuid(),
   need_type text not null,
+  goal_title text not null default '',
   label text not null,
   restore_amount integer not null check (restore_amount > 0),
   submitted_by uuid not null references auth.users(id) on delete cascade,
   use_count integer not null default 0,
   created_at timestamptz not null default now()
 );
+
+-- Safe to re-run against a database where shared_tasks already existed
+-- before goal_title was added — tasks used to be tagged with a category
+-- directly instead of carrying the goal they actually belong to.
+alter table public.shared_tasks add column if not exists goal_title text not null default '';
 
 alter table public.shared_tasks enable row level security;
 

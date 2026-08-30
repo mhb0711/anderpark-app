@@ -34,7 +34,7 @@ import { playSound } from './lib/sound';
 import { useEffect, useRef, useState } from 'react';
 import type { NeedType } from './types';
 
-const MIN_ZOOM = 0.55;
+const MIN_ZOOM = 0.75;
 const MAX_ZOOM = 1.3;
 const ZOOM_STEP = 0.15;
 
@@ -323,6 +323,7 @@ function App() {
           character={character}
           taskBoard={taskBoard}
           onAddCustomTask={addCustomTask}
+          onActivateNeed={activateNeed}
           onClose={() => setTaskBoardOpen(false)}
         />
       )}
