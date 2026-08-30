@@ -373,7 +373,7 @@ export function HyenaDefenseGame({ appearanceId, colorMode, progress, onExit, on
               src={appearance.image}
               alt=""
               className="absolute h-12 w-12 -translate-x-1/2 -translate-y-1/2 object-contain [image-rendering:pixelated]"
-              style={{ left: `${s.playerX}%`, top: `${PLAYER_Y}%` }}
+              style={{ left: `${s.playerX}%`, top: `${PLAYER_Y}%`, filter: colorMode ? appearance.colorFilter : undefined }}
             />
           )}
 

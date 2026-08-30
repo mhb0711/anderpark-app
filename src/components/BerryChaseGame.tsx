@@ -406,7 +406,7 @@ export function BerryChaseGame({ appearanceId, colorMode, progress, onExit, onGa
               src={appearance.image}
               alt=""
               className="absolute h-5 w-5 -translate-x-1/2 -translate-y-1/2 object-contain [image-rendering:pixelated]"
-              style={{ left: `${playerLeft}%`, top: `${playerTop}%` }}
+              style={{ left: `${playerLeft}%`, top: `${playerTop}%`, filter: colorMode ? appearance.colorFilter : undefined }}
             />
           )}
 
