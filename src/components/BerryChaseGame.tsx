@@ -1,10 +1,16 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
+import spiderImg from '../assets/spider.png';
 import { getAppearance } from '../data/appearances';
-import { HYENA_MATRICES } from '../data/hyenaArt';
 import { generateMaze, isWalkable, GRID_H, GRID_W, type Cell, type Pos } from '../data/mazeGen';
 import type { GameProgressEntry, RunResult } from '../hooks/useGameProgress';
 import { playSound } from '../lib/sound';
-import { PixelSprite } from './PixelDecor';
+
+// Tints the (grayscale) spider art in color mode — a filter, not recolored
+// art, matching how pet appearances handle Mono/Color. Frightened spiders
+// get a distinct pale-blue tint regardless of mode, same idea as the old
+// palette-swap this replaced.
+const SPIDER_COLOR_FILTER = 'sepia(1) saturate(2.5) hue-rotate(-25deg) brightness(0.65)';
+const SPIDER_FRIGHTENED_FILTER = 'sepia(1) saturate(4) hue-rotate(165deg) brightness(1.5)';
 
 const PLAYER_SPEED = 4.6; // cells per second
 const HYENA_SPEED = 3.7;
@@ -320,8 +326,6 @@ export function BerryChaseGame({ appearanceId, colorMode, progress, onExit, onGa
   }, [onGameOver, resetPositionsAfterHit]);
 
   const s = stateRef.current;
-  const hyenaColor = colorMode ? '#c9a15a' : '#e8e8e8';
-  const frightenedColor = colorMode ? '#7ec8e3' : '#f0f0f0';
   const berryColor = colorMode ? '#ffb84d' : '#cfcfcf';
   const powerColor = colorMode ? '#ff6b6b' : '#ffffff';
   const wallColor = colorMode ? '#26418f' : '#333333';
@@ -381,14 +385,18 @@ export function BerryChaseGame({ appearanceId, colorMode, progress, onExit, onGa
               const frightened = h.frightenedUntil > elapsedMsRef.current;
               const left = ((h.col + h.dirC * h.t + 0.5) / GRID_W) * 100;
               const top = ((h.row + h.dirR * h.t + 0.5) / GRID_H) * 100;
-              const matrix = HYENA_MATRICES[h.id % HYENA_MATRICES.length];
               return (
                 <div
                   key={h.id}
                   className={`absolute -translate-x-1/2 -translate-y-1/2 ${frightened ? 'animate-pulse' : ''}`}
                   style={{ left: `${left}%`, top: `${top}%` }}
                 >
-                  <PixelSprite matrix={matrix} size={3} palette={{ 1: frightened ? frightenedColor : hyenaColor }} />
+                  <img
+                    src={spiderImg}
+                    alt=""
+                    className="h-5 w-5"
+                    style={{ filter: frightened ? SPIDER_FRIGHTENED_FILTER : colorMode ? SPIDER_COLOR_FILTER : undefined }}
+                  />
                 </div>
               );
             })}
@@ -411,14 +419,14 @@ export function BerryChaseGame({ appearanceId, colorMode, progress, onExit, onGa
           {(s.status === 'ready' || s.status === 'lost') && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/80 px-6 text-center">
               <p className="font-mono text-sm font-bold text-white">
-                {s.status === 'ready' && 'Berries incoming — hyenas too.'}
+                {s.status === 'ready' && 'Berries incoming — spiders too.'}
                 {s.status === 'lost' && `GAME OVER — score ${s.score} · level ${s.level}`}
               </p>
               {s.status === 'ready' && (
                 <>
                   <p className="max-w-sm font-mono text-[11px] text-white/60">
                     Arrows / WASD to move, or the on-screen D-pad. Clear every berry to advance. Grab a big berry to
-                    turn the hyenas edible for a few seconds.
+                    turn the spiders edible for a few seconds.
                   </p>
                   {progress.bestScore > 0 && (
                     <p className="font-mono text-[11px] text-emerald-400">

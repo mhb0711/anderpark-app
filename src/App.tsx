@@ -423,7 +423,7 @@ function App() {
 
       {scoreboardGame === 'hyena' && character && (
         <ScoreboardModal
-          title="Hyena Defense Scoreboard"
+          title="Spider Defense Scoreboard"
           friends={friends}
           myNickname={character.nickname}
           myAppearanceId={character.appearanceId}

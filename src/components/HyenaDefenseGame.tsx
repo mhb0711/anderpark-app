@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
+import spiderImg from '../assets/spider.png';
 import { getAppearance } from '../data/appearances';
-import { HYENA_MATRICES } from '../data/hyenaArt';
 import type { GameProgressEntry, RunResult } from '../hooks/useGameProgress';
 import { playSound } from '../lib/sound';
-import { PixelSprite } from './PixelDecor';
+
+// Tints the (grayscale) spider art in color mode — a filter, not
+// recolored art, matching how pet appearances handle Mono/Color.
+const SPIDER_COLOR_FILTER = 'sepia(1) saturate(2.5) hue-rotate(-25deg) brightness(0.65)';
 
 interface Bullet {
   id: number;
@@ -37,7 +40,7 @@ const ENEMY_LOSE_Y = 78;
 const STARTING_LIVES = 3;
 const LEVEL_BANNER_MS = 1300;
 
-// Each level adds more hyenas and speeds up the pack; rows cap at 5 so the
+// Each level adds more spiders and speeds up the swarm; rows cap at 5 so the
 // grid never gets taller than the arena has room for.
 function levelConfig(level: number) {
   const rows = Math.min(5, 2 + Math.ceil(level / 2));
@@ -301,13 +304,11 @@ export function HyenaDefenseGame({ appearanceId, colorMode, progress, onExit, on
     touchDirRef.current = d;
   };
 
-  const hyenaColor = colorMode ? '#c9a15a' : '#e8e8e8';
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
       <div className="w-full max-w-lg overflow-hidden rounded-3xl bg-black shadow-2xl">
         <div className="flex items-center justify-between border-b border-white/20 px-4 py-2">
-          <p className="font-mono text-xs font-bold text-white">HYENA DEFENSE</p>
+          <p className="font-mono text-xs font-bold text-white">SPIDER DEFENSE</p>
           <button onClick={onExit} className="font-mono text-xs text-white/70 hover:text-white">
             Close
           </button>
@@ -336,14 +337,18 @@ export function HyenaDefenseGame({ appearanceId, colorMode, progress, onExit, on
               .map((e) => {
                 const x = GRID_START_X + s.enemyOffsetX + e.col * COL_SPACING;
                 const y = GRID_START_Y + s.enemyOffsetY + e.row * ROW_SPACING;
-                const matrix = HYENA_MATRICES[(e.row + e.col) % HYENA_MATRICES.length];
                 return (
                   <div
                     key={`${e.row}-${e.col}`}
                     className="absolute -translate-x-1/2 -translate-y-1/2"
                     style={{ left: `${x}%`, top: `${y}%` }}
                   >
-                    <PixelSprite matrix={matrix} size={4} palette={{ 1: hyenaColor }} />
+                    <img
+                      src={spiderImg}
+                      alt=""
+                      className="h-7 w-7"
+                      style={colorMode ? { filter: SPIDER_COLOR_FILTER } : undefined}
+                    />
                   </div>
                 );
               })}
@@ -381,7 +386,7 @@ export function HyenaDefenseGame({ appearanceId, colorMode, progress, onExit, on
           {(s.status === 'ready' || s.status === 'lost') && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/75 px-6 text-center">
               <p className="font-mono text-sm font-bold text-white">
-                {s.status === 'ready' && 'Hyenas incoming!'}
+                {s.status === 'ready' && 'Spiders incoming!'}
                 {s.status === 'lost' && `GAME OVER — score ${s.score} · level ${s.level}`}
               </p>
               {s.status === 'ready' && (

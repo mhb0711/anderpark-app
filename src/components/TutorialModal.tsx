@@ -81,9 +81,9 @@ const SECTIONS: Section[] = [
   },
   {
     title: '10. Minigames',
-    body: 'Hyena Defense and Berry Berry Chase, both reachable from the 🎮 button — full coin reward the first play each day, a smaller top-up after.',
+    body: 'Spider Defense and Berry Berry Chase, both reachable from the 🎮 button — full coin reward the first play each day, a smaller top-up after.',
     image: img10Games,
-    alt: 'The Games menu listing Hyena Defense and Berry Berry Chase',
+    alt: 'The Games menu listing Spider Defense and Berry Berry Chase',
   },
   {
     title: '11. Restart AnderPark',

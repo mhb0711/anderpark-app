@@ -22,14 +22,14 @@ export function GamesModal({
 }: Props) {
   const games: GameRow[] = [
     {
-      name: 'Hyena Defense',
-      description: 'Your character fends off a pack of hyenas, wave after wave.',
+      name: 'Spider Defense',
+      description: 'Your character fends off a swarm of spiders, wave after wave.',
       onPlay: onPlayHyenaDefense,
       onScoreboard: onScoreboardHyenaDefense,
     },
     {
       name: 'Berry Berry Chase',
-      description: 'Clear the maze of berries while hyenas hunt you down.',
+      description: 'Clear the maze of berries while spiders hunt you down.',
       onPlay: onPlayBerryChase,
       onScoreboard: onScoreboardBerryChase,
     },
