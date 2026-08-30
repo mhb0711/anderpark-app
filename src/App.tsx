@@ -5,6 +5,7 @@ import { BerryChaseGame } from './components/BerryChaseGame';
 import { CharacterDetailModal } from './components/CharacterDetailModal';
 import { DailyLogModal } from './components/DailyLogModal';
 import { DecorationActionModal } from './components/DecorationActionModal';
+import { DemoVideoModal } from './components/DemoVideoModal';
 import { FriendsModal } from './components/FriendsModal';
 import { GamesModal } from './components/GamesModal';
 import { HyenaDefenseGame } from './components/HyenaDefenseGame';
@@ -90,6 +91,7 @@ function App() {
   const [activityLogOpen, setActivityLogOpen] = useState(false);
   const [taskBoardOpen, setTaskBoardOpen] = useState(false);
   const [tutorialOpen, setTutorialOpen] = useState(false);
+  const [demoVideoOpen, setDemoVideoOpen] = useState(false);
   const [gamesOpen, setGamesOpen] = useState(false);
   const [scoreboardGame, setScoreboardGame] = useState<'hyena' | 'berry' | null>(null);
   const [playingHyenaDefense, setPlayingHyenaDefense] = useState(false);
@@ -265,6 +267,7 @@ function App() {
           onOpenActivityLog={() => setActivityLogOpen(true)}
           onOpenTaskBoard={() => setTaskBoardOpen(true)}
           onOpenTutorial={() => setTutorialOpen(true)}
+          onOpenDemoVideo={() => setDemoVideoOpen(true)}
         />
       </div>
 
@@ -325,6 +328,8 @@ function App() {
       )}
 
       {tutorialOpen && <TutorialModal onClose={() => setTutorialOpen(false)} />}
+
+      {demoVideoOpen && <DemoVideoModal onClose={() => setDemoVideoOpen(false)} />}
 
       {shopOpen && (
         <ShopModal

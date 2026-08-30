@@ -13,6 +13,7 @@ interface Props {
   onOpenActivityLog: () => void;
   onOpenTaskBoard: () => void;
   onOpenTutorial: () => void;
+  onOpenDemoVideo: () => void;
 }
 
 export function SettingsMenu({
@@ -22,6 +23,7 @@ export function SettingsMenu({
   onOpenActivityLog,
   onOpenTaskBoard,
   onOpenTutorial,
+  onOpenDemoVideo,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [confirmingRestart, setConfirmingRestart] = useState(false);
@@ -73,6 +75,18 @@ export function SettingsMenu({
           >
             <span>Tutorial</span>
             <span className="text-emerald-600">How this works →</span>
+          </button>
+
+          <button
+            onClick={() => {
+              playSound('click');
+              setOpen(false);
+              onOpenDemoVideo();
+            }}
+            className="mb-4 flex w-full items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-900 hover:bg-emerald-100"
+          >
+            <span>Demo Video</span>
+            <span className="text-emerald-600">Watch →</span>
           </button>
 
           <div className="mb-4">
